@@ -1,0 +1,28 @@
+name: RecipeExporter
+version: '1.0'
+main: me.justahuman.recipe_exporter.RecipeExporter
+api-version: 1.19
+prefix: RE
+depend: [ Slimefun ]
+authors: [ JustAHuman ]
+description: Exports Slimefun Recipes to Json Files
+permissions:
+  recipe_exporter.export:
+    default: op
+    description: Grants access to all /re export commands
+    children:
+      - recipe_exporter.export.items
+      - recipe_exporter.export.item_groups
+      - recipe_exporter.export.categories
+
+  recipe_exporter.export.items:
+    default: op
+    description: Grants access to /re export items
+
+  recipe_exporter.export.item_group:
+    default: op
+    description: Grants access to /re export item_group
+
+  recipe_exporter.export.categories:
+    default: op
+    description: Grants access to /re export categories
