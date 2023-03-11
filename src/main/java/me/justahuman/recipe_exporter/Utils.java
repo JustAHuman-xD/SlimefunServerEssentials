@@ -8,6 +8,7 @@ import de.tr7zw.nbtapi.NBTItem;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.groups.FlexItemGroup;
+import io.github.thebusybiscuit.slimefun4.core.attributes.RecipeDisplayItem;
 import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems;
@@ -17,6 +18,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.items.altar.AncientAlta
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.AbstractEnergyProvider;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.Pair;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
+import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AGenerator;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineFuel;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
 import org.bukkit.Material;
@@ -208,15 +210,15 @@ public class Utils {
         final JsonArray recipesArray = new JsonArray();
     
         if (slimefunItem instanceof MultiBlockMachine multiBlockMachine) {
-            final List<ItemStack[]> multiBlockMachineRecipes = multiBlockMachine.getRecipes();
-            for (ItemStack[] inputs : multiBlockMachineRecipes) {
+            final List<ItemStack[]> recipes = multiBlockMachine.getRecipes();
+            for (ItemStack[] inputs : recipes) {
                 // Slimefun saves it as Input, Output, Input, Output, So we skip on the Outputs
-                final int index = multiBlockMachineRecipes.indexOf(inputs);
-                if (index % 2 != 0 || multiBlockMachineRecipes.size() - 1 < index + 1) {
+                final int index = recipes.indexOf(inputs);
+                if (index % 2 != 0 || recipes.size() - 1 < index + 1) {
                     continue;
                 }
             
-                final ItemStack[] outputs = multiBlockMachineRecipes.get(index + 1);
+                final ItemStack[] outputs = recipes.get(index + 1);
             
                 addRecipeWithOptimize(recipesArray, new RecipeBuilder().inputs(inputs).outputs(outputs).build());
             }
@@ -247,6 +249,10 @@ public class Utils {
                 // We have to Multiply this by 10 here as this is in Slimefun Ticks and not Minecraft Ticks
                 addRecipeWithOptimize(recipesArray, new RecipeBuilder().time(machineFuel.getTicks() * 10).inputs(inputs).outputs(outputs).build());
             }
+            
+            if (slimefunItem instanceof AGenerator aGenerator) {
+                categoryObject.addProperty("energy", aGenerator.getEnergyProduction());
+            }
         } else if (slimefunItem instanceof AContainer aContainer) {
             for (MachineRecipe machineRecipe : aContainer.getMachineRecipes()) {
                 final ItemStack[] inputs = machineRecipe.getInput();
@@ -257,6 +263,19 @@ public class Utils {
     
             categoryObject.addProperty("speed", aContainer.getSpeed());
             categoryObject.addProperty("energy", -aContainer.getEnergyConsumption());
+        } else if (slimefunItem instanceof RecipeDisplayItem recipeDisplayItem) {
+            final List<ItemStack> recipes = recipeDisplayItem.getDisplayRecipes();
+            for (ItemStack input : recipes) {
+                // Slimefun saves it as Input, Output, Input, Output, So we skip on the Outputs
+                final int index = recipes.indexOf(input);
+                if (index % 2 != 0 || recipes.size() - 1 < index + 1) {
+                    continue;
+                }
+        
+                final ItemStack output = recipes.get(index + 1);
+        
+                addRecipeWithOptimize(recipesArray, new RecipeBuilder().inputs(new ItemStack[] {input}).outputs(new ItemStack[] {output}).build());
+            }
         }
         
         if (!recipesArray.isEmpty()) {
