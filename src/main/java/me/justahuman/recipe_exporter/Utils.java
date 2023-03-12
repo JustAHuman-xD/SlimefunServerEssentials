@@ -175,7 +175,7 @@ public class Utils {
             
                 addRecipeWithOptimize(recipesArray, new RecipeBuilder().inputs(inputs).outputs(outputs).build());
             }
-            categoryObject.addProperty("type", "grid");
+            categoryObject.addProperty("type", "grid3");
         } else if (slimefunItem instanceof AncientAltar ancientAltar) {
             for (AltarRecipe altarRecipe : ancientAltar.getRecipes()) {
                 final List<ItemStack> altarInputs = altarRecipe.getInput();
