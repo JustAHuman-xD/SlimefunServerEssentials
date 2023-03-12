@@ -33,7 +33,7 @@ public class CommandManager extends BaseCommand {
     @CommandPermission("recipe_exporter.export.items")
     @Description("Exports the items for a given Slimefun Addon to a Json File")
     public void exportItems(Player player, String[] args) {
-        if (args.length < 1 || !Utils.isSlimefunAddon(args[0])) {
+        if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
             player.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
             return;
         }
@@ -64,7 +64,7 @@ public class CommandManager extends BaseCommand {
     @CommandPermission("recipe_exporter.export.item_groups")
     @Description("Exports the item groups for a given Slimefun Addon to a Json File")
     public void exportItemGroup(Player player, String[] args) {
-        if (args.length < 1 || !Utils.isSlimefunAddon(args[0])) {
+        if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
             player.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
             return;
         }
@@ -95,7 +95,7 @@ public class CommandManager extends BaseCommand {
     @CommandPermission("recipe_exporter.export.categories")
     @Description("Exports the categories for a given Slimefun Addon to a Json File")
     public void exportCategories(Player player, String[] args) {
-        if (args.length < 1 || !Utils.isSlimefunAddon(args[0])) {
+        if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
             player.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
             return;
         }

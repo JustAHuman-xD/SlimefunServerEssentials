@@ -6,11 +6,18 @@ import org.bukkit.inventory.ItemStack;
 
 public class RecipeBuilder {
     private Integer time = null;
+    private Integer energy = null;
     private JsonArray inputs = null;
     private JsonArray outputs = null;
+    private JsonArray labels = new JsonArray();
     
     public RecipeBuilder time(Integer time) {
         this.time = time;
+        return this;
+    }
+    
+    public RecipeBuilder energy(Integer energy) {
+        this.energy = energy;
         return this;
     }
     
@@ -32,10 +39,19 @@ public class RecipeBuilder {
         return this;
     }
     
+    public RecipeBuilder label(String label) {
+        this.labels.add(label);
+        return this;
+    }
+    
     public JsonObject build() {
         final JsonObject recipe = new JsonObject();
         if (this.time != null) {
             recipe.addProperty("time", this.time);
+        }
+        
+        if (this.energy != null) {
+            recipe.addProperty("energy", this.energy);
         }
         
         if (this.inputs != null) {
@@ -44,6 +60,10 @@ public class RecipeBuilder {
     
         if (this.outputs != null) {
             recipe.add("outputs", this.outputs);
+        }
+        
+        if (!this.labels.isEmpty()) {
+            recipe.add("labels", this.labels);
         }
         
         return recipe;
