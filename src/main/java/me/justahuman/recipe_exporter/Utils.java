@@ -20,6 +20,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.items.electric.generato
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.ElectricSmeltery;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.reactors.Reactor;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.Pair;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AGenerator;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineFuel;
@@ -200,7 +201,13 @@ public class Utils {
         } else if (slimefunItem instanceof AbstractEnergyProvider abstractEnergyProvider) {
             final Set<MachineFuel> abstractEnergyProviderFuelTypes = abstractEnergyProvider.getFuelTypes();
             for (MachineFuel machineFuel : abstractEnergyProviderFuelTypes) {
-                final ItemStack[] inputs = new ItemStack[] { machineFuel.getInput() };
+                final List<ItemStack> inputs = new ArrayList<>(List.of(machineFuel.getInput()));
+                if (slimefunItem instanceof Reactor reactor && reactor.getCoolant() != null) {
+                    for (int count = (int) Math.ceil(machineFuel.getTicks() / 50D); count != 0; count -= Math.min(count, 64)) {
+                        inputs.add(new CustomItemStack(reactor.getCoolant(), Math.min(count, 64)));
+                    }
+                }
+                
                 final ItemStack[] outputs = new ItemStack[] { machineFuel.getOutput() };
                 // We have to Multiply this by 10 here as this is in Slimefun Ticks and not Minecraft Ticks
                 addRecipeWithOptimize(recipesArray, new RecipeBuilder().time(machineFuel.getTicks() * 10).inputs(inputs).outputs(outputs).build());
@@ -404,10 +411,18 @@ public class Utils {
         return 1;
     }
     
-    public static JsonArray processList(ItemStack[] process) {
+    public static JsonArray processList(List<ItemStack> process) {
         final JsonArray processed = new JsonArray();
-        for (ItemStack item : process) {
-            processed.add(process(item));
+        for (ItemStack itemStack : process) {
+            processed.add(process(itemStack));
+        }
+        return processed;
+    }
+    
+    public static JsonArray processArray(ItemStack[] process) {
+        final JsonArray processed = new JsonArray();
+        for (ItemStack itemStack : process) {
+            processed.add(process(itemStack));
         }
         return processed;
     }

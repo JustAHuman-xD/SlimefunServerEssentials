@@ -4,12 +4,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
+
 public class RecipeBuilder {
     private Integer time = null;
     private Integer energy = null;
     private JsonArray inputs = null;
     private JsonArray outputs = null;
-    private JsonArray labels = new JsonArray();
+    private final JsonArray labels = new JsonArray();
     
     public RecipeBuilder time(Integer time) {
         this.time = time;
@@ -21,8 +23,12 @@ public class RecipeBuilder {
         return this;
     }
     
-    public RecipeBuilder inputs(ItemStack[] inputs) {
+    public RecipeBuilder inputs(List<ItemStack> inputs) {
         return inputs(Utils.processList(inputs));
+    }
+    
+    public RecipeBuilder inputs(ItemStack[] inputs) {
+        return inputs(Utils.processArray(inputs));
     }
     
     private RecipeBuilder inputs(JsonArray inputs) {
@@ -30,8 +36,12 @@ public class RecipeBuilder {
         return this;
     }
     
-    public RecipeBuilder outputs(ItemStack[] outputs) {
+    public RecipeBuilder outputs(List<ItemStack> outputs) {
         return outputs(Utils.processList(outputs));
+    }
+    
+    public RecipeBuilder outputs(ItemStack[] outputs) {
+        return outputs(Utils.processArray(outputs));
     }
     
     private RecipeBuilder outputs(JsonArray outputs) {
