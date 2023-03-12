@@ -22,7 +22,6 @@ import io.github.thebusybiscuit.slimefun4.implementation.items.electric.reactors
 import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.Pair;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
-import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AGenerator;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineFuel;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
 import org.bukkit.Material;
@@ -213,9 +212,7 @@ public class Utils {
                 addRecipeWithOptimize(recipesArray, new RecipeBuilder().time(machineFuel.getTicks() * 10).inputs(inputs).outputs(outputs).build());
             }
             
-            if (slimefunItem instanceof AGenerator aGenerator) {
-                categoryObject.addProperty("energy", aGenerator.getEnergyProduction());
-            }
+            categoryObject.addProperty("energy", abstractEnergyProvider.getEnergyProduction());
             
             if (slimefunItem instanceof Reactor) {
                 categoryObject.addProperty("type", "reactor");
