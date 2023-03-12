@@ -17,6 +17,8 @@ import io.github.thebusybiscuit.slimefun4.implementation.items.altar.AltarRecipe
 import io.github.thebusybiscuit.slimefun4.implementation.items.altar.AncientAltar;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.AbstractEnergyProvider;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.generators.SolarGenerator;
+import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.ElectricSmeltery;
+import io.github.thebusybiscuit.slimefun4.implementation.items.electric.reactors.Reactor;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.Pair;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AGenerator;
@@ -173,6 +175,7 @@ public class Utils {
             
                 addRecipeWithOptimize(recipesArray, new RecipeBuilder().inputs(inputs).outputs(outputs).build());
             }
+            categoryObject.addProperty("type", "grid");
         } else if (slimefunItem instanceof AncientAltar ancientAltar) {
             for (AltarRecipe altarRecipe : ancientAltar.getRecipes()) {
                 final List<ItemStack> altarInputs = altarRecipe.getInput();
@@ -192,6 +195,8 @@ public class Utils {
                 // An Ancient Altar Task goes through 36 "stages" before completion, the delay between each is 8 ticks.
                 addRecipeWithOptimize(recipesArray, new RecipeBuilder().time(36 * 8).inputs(inputs).outputs(outputs).build());
             }
+            
+            categoryObject.addProperty("type", "ancient_altar");
         } else if (slimefunItem instanceof AbstractEnergyProvider abstractEnergyProvider) {
             final Set<MachineFuel> abstractEnergyProviderFuelTypes = abstractEnergyProvider.getFuelTypes();
             for (MachineFuel machineFuel : abstractEnergyProviderFuelTypes) {
@@ -203,6 +208,10 @@ public class Utils {
             
             if (slimefunItem instanceof AGenerator aGenerator) {
                 categoryObject.addProperty("energy", aGenerator.getEnergyProduction());
+            }
+            
+            if (slimefunItem instanceof Reactor) {
+                categoryObject.addProperty("type", "reactor");
             }
         } else if (slimefunItem instanceof SolarGenerator solarGenerator) {
             addRecipeWithOptimize(recipesArray, new RecipeBuilder().time(10).energy(solarGenerator.getDayEnergy()).label("day").build());
@@ -217,6 +226,10 @@ public class Utils {
     
             categoryObject.addProperty("speed", aContainer.getSpeed());
             categoryObject.addProperty("energy", -aContainer.getEnergyConsumption());
+            
+            if (slimefunItem instanceof ElectricSmeltery) {
+                categoryObject.addProperty("type", "smeltery");
+            }
         } else if (slimefunItem instanceof RecipeDisplayItem recipeDisplayItem) {
             final List<ItemStack> recipes = recipeDisplayItem.getDisplayRecipes();
             for (ItemStack input : recipes) {
