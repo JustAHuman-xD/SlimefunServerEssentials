@@ -11,6 +11,7 @@ import com.google.gson.JsonObject;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.common.ChatColors;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.io.BufferedWriter;
@@ -32,9 +33,9 @@ public class CommandManager extends BaseCommand {
     @CommandCompletion("@addons")
     @CommandPermission("recipe_exporter.export.items")
     @Description("Exports the items for a given Slimefun Addon to a Json File")
-    public void exportItems(Player player, String[] args) {
+    public void exportItems(CommandSender sender, String[] args) {
         if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
-            player.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
+            sender.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
             return;
         }
         
@@ -47,15 +48,15 @@ public class CommandManager extends BaseCommand {
             root.add(slimefunItem.getId(), Utils.serializeItem(slimefunItem));
         }
         
-        exportToFile(player, root, filePath);
+        exportToFile(sender, root, filePath);
     }
     
     @Subcommand("export all_items")
     @CommandPermission("recipe_exporter.export.items")
     @Description("Exports all items per Slimefun Addon")
-    public void exportAllItems(Player player, String[] args) {
+    public void exportAllItems(CommandSender sender, String[] args) {
         for (String addon : Utils.getSlimefunAddonNames()) {
-            exportItems(player, new String[] {addon});
+            exportItems(sender, new String[] {addon});
         }
     }
     
@@ -63,9 +64,9 @@ public class CommandManager extends BaseCommand {
     @CommandCompletion("@item_groups")
     @CommandPermission("recipe_exporter.export.item_groups")
     @Description("Exports the item groups for a given Slimefun Addon to a Json File")
-    public void exportItemGroup(Player player, String[] args) {
+    public void exportItemGroup(CommandSender sender, String[] args) {
         if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
-            player.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
+            sender.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
             return;
         }
     
@@ -78,15 +79,15 @@ public class CommandManager extends BaseCommand {
             root.add(itemGroup.getKey().getKey(), Utils.serializeItemGroup(player, itemGroup));
         }
         
-        exportToFile(player, root, filePath);
+        exportToFile(sender, root, filePath);
     }
     
     @Subcommand("export all_item_groups")
     @CommandPermission("recipe_exporter.export.items")
     @Description("Exports all item groups per Slimefun Addon")
-    public void exportAllItemGroups(Player player, String[] args) {
+    public void exportAllItemGroups(CommandSender sender, String[] args) {
         for (String addon : Utils.getSlimefunAddonNames()) {
-            exportItemGroup(player, new String[] {addon});
+            exportItemGroup(sender, new String[] {addon});
         }
     }
     
@@ -94,9 +95,9 @@ public class CommandManager extends BaseCommand {
     @CommandCompletion("@addons")
     @CommandPermission("recipe_exporter.export.categories")
     @Description("Exports the categories for a given Slimefun Addon to a Json File")
-    public void exportCategories(Player player, String[] args) {
+    public void exportCategories(CommandSender sender, String[] args) {
         if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
-            player.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
+            sender.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
             return;
         }
         
@@ -112,19 +113,19 @@ public class CommandManager extends BaseCommand {
             }
         }
     
-        exportToFile(player, root, filePath);
+        exportToFile(sender, root, filePath);
     }
     
     @Subcommand("export all_categories")
     @CommandPermission("recipe_exporter.export.categories")
     @Description("Exports all categories per Slimefun Addon")
-    public void exportAllCategories(Player player, String[] args) {
+    public void exportAllCategories(CommandSender sender, String[] args) {
         for (String addon : Utils.getSlimefunAddonNames()) {
-            exportCategories(player, new String[] {addon});
+            exportCategories(sender, new String[] {addon});
         }
     }
     
-    private void exportToFile(Player player, JsonObject root, String filePath) {
+    private void exportToFile(CommandSender sender, JsonObject root, String filePath) {
         final File file = new File(filePath);
         if (!file.exists()) {
             try {
@@ -133,7 +134,7 @@ public class CommandManager extends BaseCommand {
                     throw new IOException();
                 }
             } catch(IOException | SecurityException e) {
-                player.sendMessage(ChatColors.color("&cAn error occurred while exporting! (Check the Console)"));
+                sender.sendMessage(ChatColors.color("&cAn error occurred while exporting! (Check the Console)"));
                 e.printStackTrace();
                 return;
             }
@@ -145,9 +146,9 @@ public class CommandManager extends BaseCommand {
             fileWriter.flush();
             fileWriter.close();
         
-            player.sendMessage(ChatColors.color("&aSuccessfully exported to " + filePath + "!"));
+            sender.sendMessage(ChatColors.color("&aSuccessfully exported to " + filePath + "!"));
         } catch (IOException | SecurityException e) {
-            player.sendMessage(ChatColors.color("&cAn error occurred while exporting! (Check the Console)"));
+            sender.sendMessage(ChatColors.color("&cAn error occurred while exporting! (Check the Console)"));
             e.printStackTrace();
         }
     }
