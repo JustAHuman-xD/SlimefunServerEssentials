@@ -64,9 +64,9 @@ public class CommandManager extends BaseCommand {
     @CommandCompletion("@item_groups")
     @CommandPermission("recipe_exporter.export.item_groups")
     @Description("Exports the item groups for a given Slimefun Addon to a Json File")
-    public void exportItemGroup(CommandSender sender, String[] args) {
+    public void exportItemGroup(Player player, String[] args) {
         if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
-            sender.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
+            player.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
             return;
         }
     
@@ -79,15 +79,15 @@ public class CommandManager extends BaseCommand {
             root.add(itemGroup.getKey().getKey(), Utils.serializeItemGroup(player, itemGroup));
         }
         
-        exportToFile(sender, root, filePath);
+        exportToFile(player, root, filePath);
     }
     
     @Subcommand("export all_item_groups")
     @CommandPermission("recipe_exporter.export.items")
     @Description("Exports all item groups per Slimefun Addon")
-    public void exportAllItemGroups(CommandSender sender, String[] args) {
+    public void exportAllItemGroups(Player player, String[] args) {
         for (String addon : Utils.getSlimefunAddonNames()) {
-            exportItemGroup(sender, new String[] {addon});
+            exportItemGroup(player, new String[] {addon});
         }
     }
     
