@@ -9,7 +9,7 @@ description: Exports Slimefun Recipes to Json Files
 permissions:
   recipe_exporter.export:
     default: op
-    description: Grants access to all /re export commands
+    description: Grants access to all /recipe_exporter export commands
     children:
       - recipe_exporter.export.items
       - recipe_exporter.export.item_groups
@@ -17,12 +17,12 @@ permissions:
 
   recipe_exporter.export.items:
     default: op
-    description: Grants access to /re export items
+    description: Grants access to /recipe_exporter export items
 
   recipe_exporter.export.item_group:
     default: op
-    description: Grants access to /re export item_group
+    description: Grants access to /recipe_exporter export item_group
 
   recipe_exporter.export.categories:
     default: op
-    description: Grants access to /re export categories
+    description: Grants access to /recipe_exporter export categories
