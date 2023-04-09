@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/RecipeExporter.iml" filepath="$PROJECT_DIR$/RecipeExporter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/SlimefunServerEssentials.iml" filepath="$PROJECT_DIR$/SlimefunServerEssentials.iml" />
     </modules>
   </component>
 </project>
