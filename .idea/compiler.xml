@@ -11,7 +11,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="RecipeExporter" target="16" />
+      <module name="SlimefunServerEssentials" target="16" />
     </bytecodeTargetLevel>
   </component>
 </project>
