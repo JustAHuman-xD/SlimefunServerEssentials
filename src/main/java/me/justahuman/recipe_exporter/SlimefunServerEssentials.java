@@ -6,10 +6,10 @@ import co.aikar.commands.PaperCommandManager;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class RecipeExporter extends JavaPlugin {
+public final class SlimefunServerEssentials extends JavaPlugin {
 
     @Getter
-    private static RecipeExporter instance;
+    private static SlimefunServerEssentials instance;
 
     @Override
     public void onEnable() {
@@ -19,6 +19,8 @@ public final class RecipeExporter extends JavaPlugin {
         commandCompletions.registerAsyncCompletion("addons", c -> Utils.getSlimefunAddonNames());
         commandCompletions.registerAsyncCompletion("item_groups", c -> Utils.getSlimefunAddonNames());
         paperCommandManager.registerCommand(new CommandManager());
+        new AddonChannel().init(instance);
+        new BlockChannel().init(instance);
     }
 
     @Override

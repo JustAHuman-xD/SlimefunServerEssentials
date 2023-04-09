@@ -45,6 +45,9 @@ public class Utils {
     private static final Map<String, Set<SlimefunItem>> slimefunItems = new HashMap<>();
     static {
         for (SlimefunItem slimefunItem : Slimefun.getRegistry().getEnabledSlimefunItems()) {
+            if (slimefunItem instanceof VanillaItem) {
+                continue;
+            }
             final String addonName = slimefunItem.getAddon().getName();
             final Set<SlimefunItem> itemSet = slimefunItems.getOrDefault(addonName, new HashSet<>());
             itemSet.add(slimefunItem);
@@ -516,6 +519,6 @@ public class Utils {
     }
     
     public static void log(String log) {
-        RecipeExporter.getInstance().getLogger().info(log);
+        SlimefunServerEssentials.getInstance().getLogger().info(log);
     }
 }

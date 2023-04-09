@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.justahuman</groupId>
-    <artifactId>RecipeExporter</artifactId>
+    <artifactId>SlimefunServerEssentials</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>RecipeExporter</name>
+    <name>SlimefunServerEssentials</name>
 
     <description>Exports Slimefun Recipes to Json Files</description>
     <properties>

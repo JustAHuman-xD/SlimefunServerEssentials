@@ -10,7 +10,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.blocks.BlockPosition;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.common.ChatColors;
+import me.mrCookieSlime.Slimefun.api.BlockStorage;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -24,14 +27,27 @@ import java.util.List;
 import java.util.Set;
 
 @SuppressWarnings("unused")
-@CommandAlias("recipe_exporter")
+@CommandAlias("slimefun_server_essentials")
 public class CommandManager extends BaseCommand {
     private static final Gson gson = new Gson().newBuilder().create();
-    private static final String path = "plugins/RecipeExporter/exported/";
+    private static final String path = "plugins/SlimefunServerEssentials/exported/";
+
+    @Subcommand("block")
+    @CommandPermission("slimefun_server_essentials.block")
+    @Description("Sends the Slimefun Block Packet to tell a Client a Block is a Slimefun Block")
+    public void block(Player player, String[] args) {
+        final Block block = player.getTargetBlock(8);
+        if (block == null || BlockStorage.check(block) == null) {
+            player.sendMessage(ChatColors.color("&cYou must be looking at a Slimefun Block"));
+            return;
+        }
+
+        BlockChannel.sendSlimefunBlock(player, new BlockPosition(block), BlockStorage.check(block).getId());
+    }
     
     @Subcommand("export items")
     @CommandCompletion("@addons")
-    @CommandPermission("recipe_exporter.export.items")
+    @CommandPermission("slimefun_server_essentials.export.items")
     @Description("Exports the items for a given Slimefun Addon to a Json File")
     public void exportItems(CommandSender sender, String[] args) {
         if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
@@ -52,7 +68,7 @@ public class CommandManager extends BaseCommand {
     }
     
     @Subcommand("export all_items")
-    @CommandPermission("recipe_exporter.export.items")
+    @CommandPermission("slimefun_server_essentials.export.items")
     @Description("Exports all items per Slimefun Addon")
     public void exportAllItems(CommandSender sender, String[] args) {
         for (String addon : Utils.getSlimefunAddonNames()) {
@@ -62,7 +78,7 @@ public class CommandManager extends BaseCommand {
     
     @Subcommand("export item_groups")
     @CommandCompletion("@item_groups")
-    @CommandPermission("recipe_exporter.export.item_groups")
+    @CommandPermission("slimefun_server_essentials.export.item_groups")
     @Description("Exports the item groups for a given Slimefun Addon to a Json File")
     public void exportItemGroup(Player player, String[] args) {
         if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
@@ -83,7 +99,7 @@ public class CommandManager extends BaseCommand {
     }
     
     @Subcommand("export all_item_groups")
-    @CommandPermission("recipe_exporter.export.items")
+    @CommandPermission("slimefun_server_essentials.export.items")
     @Description("Exports all item groups per Slimefun Addon")
     public void exportAllItemGroups(Player player, String[] args) {
         for (String addon : Utils.getSlimefunAddonNames()) {
@@ -93,7 +109,7 @@ public class CommandManager extends BaseCommand {
     
     @Subcommand("export categories")
     @CommandCompletion("@addons")
-    @CommandPermission("recipe_exporter.export.categories")
+    @CommandPermission("slimefun_server_essentials.export.categories")
     @Description("Exports the categories for a given Slimefun Addon to a Json File")
     public void exportCategories(CommandSender sender, String[] args) {
         if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
@@ -117,7 +133,7 @@ public class CommandManager extends BaseCommand {
     }
     
     @Subcommand("export all_categories")
-    @CommandPermission("recipe_exporter.export.categories")
+    @CommandPermission("slimefun_server_essentials.export.categories")
     @Description("Exports all categories per Slimefun Addon")
     public void exportAllCategories(CommandSender sender, String[] args) {
         for (String addon : Utils.getSlimefunAddonNames()) {

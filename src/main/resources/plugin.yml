@@ -1,28 +1,28 @@
-name: RecipeExporter
+name: SlimefunServerEssentials
 version: '${project.version}'
-main: me.justahuman.recipe_exporter.RecipeExporter
+main: me.justahuman.recipe_exporter.SlimefunServerEssentials
 api-version: 1.19
-prefix: RE
+prefix: SSE
 depend: [ Slimefun ]
 authors: [ JustAHuman ]
-description: Exports Slimefun Recipes to Json Files
+description: Exports Slimefun Recipes to Json Files & provides support for many features of the Slimefun Essentials Mod
 permissions:
-  recipe_exporter.export:
+  slimefun_server_essentials.export:
     default: op
     description: Grants access to all /recipe_exporter export commands
     children:
-      - recipe_exporter.export.items
-      - recipe_exporter.export.item_groups
-      - recipe_exporter.export.categories
+      - slimefun_server_essentials.export.items
+      - slimefun_server_essentials.export.item_groups
+      - slimefun_server_essentials.export.categories
 
-  recipe_exporter.export.items:
+  slimefun_server_essentials.export.items:
     default: op
     description: Grants access to /recipe_exporter export items
 
-  recipe_exporter.export.item_group:
+  slimefun_server_essentials.export.item_group:
     default: op
     description: Grants access to /recipe_exporter export item_group
 
-  recipe_exporter.export.categories:
+  slimefun_server_essentials.export.categories:
     default: op
     description: Grants access to /recipe_exporter export categories
