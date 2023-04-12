@@ -1,4 +1,4 @@
-package me.justahuman.recipe_exporter;
+package me.justahuman.slimefun_server_essentials;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;

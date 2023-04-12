@@ -1,4 +1,4 @@
-package me.justahuman.recipe_exporter;
+package me.justahuman.slimefun_server_essentials;
 
 import co.aikar.commands.BukkitCommandCompletionContext;
 import co.aikar.commands.CommandCompletions;

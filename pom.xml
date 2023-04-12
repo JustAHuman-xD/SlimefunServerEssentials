@@ -37,15 +37,15 @@
                     <relocations>
                         <relocation>
                             <pattern>de.tr7zw.changeme.nbtapi</pattern>
-                            <shadedPattern>me.justahuman.recipe_exporter.nbtapi</shadedPattern>
+                            <shadedPattern>me.justahuman.slimefun_server_essentials.nbtapi</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>co.aikar.commands</pattern>
-                            <shadedPattern>me.justahuman.recipe_exporter.acf</shadedPattern>
+                            <shadedPattern>me.justahuman.slimefun_server_essentials.acf</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>co.aikar.locales</pattern>
-                            <shadedPattern>me.justahuman.recipe_exporter.locales</shadedPattern>
+                            <shadedPattern>me.justahuman.slimefun_server_essentials.locales</shadedPattern>
                         </relocation>
                     </relocations>
                     <filters>
@@ -131,8 +131,8 @@
 
         <dependency>
             <groupId>com.github.Slimefun</groupId>
-            <artifactId>Slimefun4</artifactId>
-            <version>2c4f886</version>
+            <artifactId>Slimefun</artifactId>
+            <version>5.0-UNOFFICIAL</version>
             <scope>provided</scope>
         </dependency>
 

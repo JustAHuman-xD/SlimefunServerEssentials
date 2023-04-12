@@ -1,4 +1,4 @@
-package me.justahuman.recipe_exporter;
+package me.justahuman.slimefun_server_essentials;
 
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;

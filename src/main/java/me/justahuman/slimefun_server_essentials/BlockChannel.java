@@ -1,9 +1,10 @@
-package me.justahuman.recipe_exporter;
+package me.justahuman.slimefun_server_essentials;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.api.events.SlimefunBlockBreakEvent;
+import io.github.thebusybiscuit.slimefun4.api.events.SlimefunBlockPlaceEvent;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.blocks.BlockPosition;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
@@ -13,6 +14,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerRegisterChannelEvent;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -43,6 +45,7 @@ public class BlockChannel implements PluginMessageListener, Listener {
         }
 
         players.add(event.getPlayer().getUniqueId());
+        Utils.log("added player to whitelist");
     }
 
     @ParametersAreNonnullByDefault
@@ -87,22 +90,27 @@ public class BlockChannel implements PluginMessageListener, Listener {
     }
 
     // Slimefun Block Place Event
-    private void onSlimefunBlockPlace(SlimefunItem slimefunItem, Block block) {
-        final String id = slimefunItem.getId();
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    private void onSlimefunBlockPlace(SlimefunBlockPlaceEvent event) {
+        final String id = event.getSlimefunItem().getId();
         for (UUID uuid : players) {
             final Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
-                sendSlimefunBlock(player, new BlockPosition(block), id);
+                sendSlimefunBlock(player, new BlockPosition(event.getBlockPlaced()), id);
+                Utils.log("sending place");
             }
         }
     }
 
     // Slimefun Block Break Event
-    private void onSlimefunBlockBreak(Block block) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    private void onSlimefunBlockBreak(SlimefunBlockBreakEvent event) {
+        final Block block = event.getBlock();
         for (UUID uuid : players) {
             final Player player = Bukkit.getPlayer(uuid);
             if (player != null && block.getWorld() == player.getWorld() && player.getLocation().distanceSquared(block.getLocation()) <= 64) {
                 sendSlimefunBlock(player, new BlockPosition(block), " ");
+                Utils.log("sending break");
             }
         }
     }
