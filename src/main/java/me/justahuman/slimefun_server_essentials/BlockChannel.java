@@ -6,6 +6,7 @@ import com.google.common.io.ByteStreams;
 import io.github.thebusybiscuit.slimefun4.api.events.SlimefunBlockBreakEvent;
 import io.github.thebusybiscuit.slimefun4.api.events.SlimefunBlockPlaceEvent;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.blocks.BlockPosition;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.blocks.ChunkPosition;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import org.bukkit.Bukkit;
@@ -29,6 +30,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class BlockChannel implements PluginMessageListener, Listener {
+    private static final Map<ChunkPosition, Set<BlockPosition>> cachedSlimefunBlocks = new HashMap<>();
     private static final Set<UUID> players = new HashSet<>();
     public static final String channel = "slimefun_server_essentials:block";
 
@@ -45,7 +47,6 @@ public class BlockChannel implements PluginMessageListener, Listener {
         }
 
         players.add(event.getPlayer().getUniqueId());
-        Utils.log("added player to whitelist");
     }
 
     @ParametersAreNonnullByDefault
@@ -67,11 +68,21 @@ public class BlockChannel implements PluginMessageListener, Listener {
 
             final World world = player.getWorld();
             final BlockStorage blockStorage = BlockStorage.getStorage(world);
-            final Map<Location, Config> rawStorage = blockStorage.getRawStorage();
-            final Map<Location, String> ids = new HashMap<>();
             final ByteArrayDataInput packet = ByteStreams.newDataInput(message);
             final int chunkX = packet.readInt();
             final int chunkZ = packet.readInt();
+            final ChunkPosition chunkPosition = new ChunkPosition(world, chunkX, chunkZ);
+
+            if (cachedSlimefunBlocks.containsKey(chunkPosition)) {
+                for (BlockPosition blockPosition : cachedSlimefunBlocks.get(chunkPosition)) {
+                    sendSlimefunBlock(player, blockPosition, BlockStorage.getLocationInfo(blockPosition.toLocation(), "id"));
+                }
+                return;
+            }
+
+            final Map<Location, Config> rawStorage = blockStorage.getRawStorage();
+            final Set<BlockPosition> blockPositions = new HashSet<>();
+            final Map<BlockPosition, String> ids = new HashMap<>();
 
             for (Map.Entry<Location, Config> entry : rawStorage.entrySet()) {
                 final Location location = entry.getKey();
@@ -80,12 +91,16 @@ public class BlockChannel implements PluginMessageListener, Listener {
                     continue;
                 }
 
-                ids.put(location, config.getString("id"));
+                final BlockPosition blockPosition = new BlockPosition(location);
+                blockPositions.add(blockPosition);
+                ids.put(blockPosition, config.getString("id"));
             }
 
-            for (Map.Entry<Location, String> entry : ids.entrySet()) {
-                sendSlimefunBlock(player, new BlockPosition(entry.getKey()), entry.getValue());
+            for (Map.Entry<BlockPosition, String> entry : ids.entrySet()) {
+                sendSlimefunBlock(player, entry.getKey(), entry.getValue());
             }
+
+            cachedSlimefunBlocks.put(chunkPosition, blockPositions);
         });
     }
 
@@ -96,8 +111,13 @@ public class BlockChannel implements PluginMessageListener, Listener {
         for (UUID uuid : players) {
             final Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
-                sendSlimefunBlock(player, new BlockPosition(event.getBlockPlaced()), id);
-                Utils.log("sending place");
+                final BlockPosition blockPosition = new BlockPosition(event.getBlockPlaced());
+                cachedSlimefunBlocks.merge(new ChunkPosition(player.getChunk()), new HashSet<>(), (s1, s2) -> {
+                    s1.addAll(s2);
+                    return s1;
+                });
+
+                sendSlimefunBlock(player, blockPosition, id);
             }
         }
     }
@@ -109,8 +129,13 @@ public class BlockChannel implements PluginMessageListener, Listener {
         for (UUID uuid : players) {
             final Player player = Bukkit.getPlayer(uuid);
             if (player != null && block.getWorld() == player.getWorld() && player.getLocation().distanceSquared(block.getLocation()) <= 64) {
-                sendSlimefunBlock(player, new BlockPosition(block), " ");
-                Utils.log("sending break");
+                final BlockPosition blockPosition = new BlockPosition(event.getBlockBroken());
+                cachedSlimefunBlocks.merge(new ChunkPosition(player.getChunk()), new HashSet<>(), (s1, s2) -> {
+                    s1.addAll(s2);
+                    return s1;
+                });
+
+                sendSlimefunBlock(player, blockPosition, " ");
             }
         }
     }
