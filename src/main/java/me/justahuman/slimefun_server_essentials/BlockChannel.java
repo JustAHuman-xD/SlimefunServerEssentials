@@ -3,8 +3,6 @@ package me.justahuman.slimefun_server_essentials;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import io.github.thebusybiscuit.slimefun4.api.events.SlimefunBlockBreakEvent;
-import io.github.thebusybiscuit.slimefun4.api.events.SlimefunBlockPlaceEvent;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.blocks.BlockPosition;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.blocks.ChunkPosition;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
@@ -12,10 +10,8 @@ import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerRegisterChannelEvent;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -103,40 +99,40 @@ public class BlockChannel implements PluginMessageListener, Listener {
             cachedSlimefunBlocks.put(chunkPosition, blockPositions);
         });
     }
-
-    // Slimefun Block Place Event
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    private void onSlimefunBlockPlace(SlimefunBlockPlaceEvent event) {
-        final String id = event.getSlimefunItem().getId();
-        for (UUID uuid : players) {
-            final Player player = Bukkit.getPlayer(uuid);
-            if (player != null) {
-                final BlockPosition blockPosition = new BlockPosition(event.getBlockPlaced());
-                cachedSlimefunBlocks.merge(new ChunkPosition(player.getChunk()), new HashSet<>(), (s1, s2) -> {
-                    s1.addAll(s2);
-                    return s1;
-                });
-
-                sendSlimefunBlock(player, blockPosition, id);
-            }
-        }
-    }
-
-    // Slimefun Block Break Event
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    private void onSlimefunBlockBreak(SlimefunBlockBreakEvent event) {
-        final Block block = event.getBlock();
-        for (UUID uuid : players) {
-            final Player player = Bukkit.getPlayer(uuid);
-            if (player != null && block.getWorld() == player.getWorld() && player.getLocation().distanceSquared(block.getLocation()) <= 64) {
-                final BlockPosition blockPosition = new BlockPosition(event.getBlockBroken());
-                cachedSlimefunBlocks.merge(new ChunkPosition(player.getChunk()), new HashSet<>(), (s1, s2) -> {
-                    s1.addAll(s2);
-                    return s1;
-                });
-
-                sendSlimefunBlock(player, blockPosition, " ");
-            }
-        }
-    }
+//
+//    // Slimefun Block Place Event
+//    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+//    private void onSlimefunBlockPlace(SlimefunBlockPlaceEvent event) {
+//        final String id = event.getSlimefunItem().getId();
+//        for (UUID uuid : players) {
+//            final Player player = Bukkit.getPlayer(uuid);
+//            if (player != null) {
+//                final BlockPosition blockPosition = new BlockPosition(event.getBlockPlaced());
+//                cachedSlimefunBlocks.merge(new ChunkPosition(player.getChunk()), new HashSet<>(), (s1, s2) -> {
+//                    s1.addAll(s2);
+//                    return s1;
+//                });
+//
+//                sendSlimefunBlock(player, blockPosition, id);
+//            }
+//        }
+//    }
+//
+//    // Slimefun Block Break Event
+//    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+//    private void onSlimefunBlockBreak(SlimefunBlockBreakEvent event) {
+//        final Block block = event.getBlock();
+//        for (UUID uuid : players) {
+//            final Player player = Bukkit.getPlayer(uuid);
+//            if (player != null && block.getWorld() == player.getWorld() && player.getLocation().distanceSquared(block.getLocation()) <= 64) {
+//                final BlockPosition blockPosition = new BlockPosition(event.getBlockBroken());
+//                cachedSlimefunBlocks.merge(new ChunkPosition(player.getChunk()), new HashSet<>(), (s1, s2) -> {
+//                    s1.addAll(s2);
+//                    return s1;
+//                });
+//
+//                sendSlimefunBlock(player, blockPosition, " ");
+//            }
+//        }
+//    }
 }
