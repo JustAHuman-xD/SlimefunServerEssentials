@@ -17,7 +17,6 @@ public final class SlimefunServerEssentials extends JavaPlugin {
         final PaperCommandManager paperCommandManager = new PaperCommandManager(this);
         final CommandCompletions<BukkitCommandCompletionContext> commandCompletions = paperCommandManager.getCommandCompletions();
         commandCompletions.registerAsyncCompletion("addons", c -> Utils.getSlimefunAddonNames());
-        commandCompletions.registerAsyncCompletion("item_groups", c -> Utils.getSlimefunAddonNames());
         paperCommandManager.registerCommand(new CommandManager());
         new AddonChannel().init(instance);
         new BlockChannel().init(instance);

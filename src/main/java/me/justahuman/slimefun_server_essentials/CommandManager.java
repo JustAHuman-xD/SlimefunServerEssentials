@@ -8,7 +8,6 @@ import co.aikar.commands.annotation.Description;
 import co.aikar.commands.annotation.Subcommand;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.blocks.BlockPosition;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.common.ChatColors;
@@ -22,9 +21,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @SuppressWarnings("unused")
 @CommandAlias("slimefun_server_essentials")
@@ -73,37 +70,6 @@ public class CommandManager extends BaseCommand {
     public void exportAllItems(CommandSender sender, String[] args) {
         for (String addon : Utils.getSlimefunAddonNames()) {
             exportItems(sender, new String[] {addon});
-        }
-    }
-    
-    @Subcommand("export item_groups")
-    @CommandCompletion("@item_groups")
-    @CommandPermission("slimefun_server_essentials.export.item_groups")
-    @Description("Exports the item groups for a given Slimefun Addon to a Json File")
-    public void exportItemGroup(Player player, String[] args) {
-        if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
-            player.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
-            return;
-        }
-    
-        final String addon = args[0];
-        final JsonObject root = new JsonObject();
-        final String filePath = path + "item_groups/" + addon.toLowerCase() + ".json";
-        final Set<ItemGroup> itemGroups = Utils.getItemGroups().getOrDefault(addon, new HashSet<>());
-        
-        for (ItemGroup itemGroup : itemGroups) {
-            root.add(itemGroup.getKey().getKey(), Utils.serializeItemGroup(player, itemGroup));
-        }
-        
-        exportToFile(player, root, filePath);
-    }
-    
-    @Subcommand("export all_item_groups")
-    @CommandPermission("slimefun_server_essentials.export.items")
-    @Description("Exports all item groups per Slimefun Addon")
-    public void exportAllItemGroups(Player player, String[] args) {
-        for (String addon : Utils.getSlimefunAddonNames()) {
-            exportItemGroup(player, new String[] {addon});
         }
     }
     
