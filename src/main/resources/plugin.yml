@@ -4,6 +4,8 @@ main: me.justahuman.recipe_exporter.SlimefunServerEssentials
 api-version: 1.19
 prefix: SSE
 depend: [ Slimefun ]
+softdepend:
+  - GuizhanLibPlugin
 authors: [ JustAHuman ]
 description: Exports Slimefun Recipes to Json Files & provides support for many features of the Slimefun Essentials Mod
 permissions:
