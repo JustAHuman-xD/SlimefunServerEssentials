@@ -31,10 +31,10 @@ public class CommandManager extends BaseCommand {
 
     @Subcommand("block")
     @CommandPermission("slimefun_server_essentials.block")
-    @Description("Sends the Slimefun Block Packet to tell a Client a Block is a Slimefun Block")
+    @Description("Sends the Slimefun Block Packet to tell a Client a Block is a Slimefun Block, Used in Testing")
     public void block(Player player, String[] args) {
-        final Block block = player.getTargetBlock(8);
-        if (block == null || BlockStorage.check(block) == null) {
+        final Block block = player.getTargetBlock(null, 8);
+        if (BlockStorage.check(block) == null) {
             player.sendMessage(ChatColors.color("&cYou must be looking at a Slimefun Block"));
             return;
         }
@@ -78,6 +78,7 @@ public class CommandManager extends BaseCommand {
     @CommandPermission("slimefun_server_essentials.export.categories")
     @Description("Exports the categories for a given Slimefun Addon to a Json File")
     public void exportCategories(CommandSender sender, String[] args) {
+        sender.sendMessage(ChatColors.color("&aFull tutorial available on the Wiki!"));
         if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
             sender.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
             return;

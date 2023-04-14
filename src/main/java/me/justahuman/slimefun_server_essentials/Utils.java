@@ -5,9 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import de.tr7zw.nbtapi.NBTItem;
-import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
-import io.github.thebusybiscuit.slimefun4.api.items.groups.FlexItemGroup;
 import io.github.thebusybiscuit.slimefun4.core.attributes.RecipeDisplayItem;
 import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
@@ -25,7 +23,6 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineFuel;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -33,7 +30,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,7 +37,6 @@ import java.util.Set;
 
 public class Utils {
     private static final Set<String> slimefunAddons = new HashSet<>();
-    private static final Map<String, Set<ItemGroup>> itemGroups = new HashMap<>();
     private static final Map<String, Set<SlimefunItem>> slimefunItems = new HashMap<>();
     static {
         for (SlimefunItem slimefunItem : Slimefun.getRegistry().getEnabledSlimefunItems()) {
@@ -52,17 +47,6 @@ public class Utils {
             final Set<SlimefunItem> itemSet = slimefunItems.getOrDefault(addonName, new HashSet<>());
             itemSet.add(slimefunItem);
             slimefunItems.put(addonName, itemSet);
-        }
-        
-        for (ItemGroup itemGroup : Slimefun.getRegistry().getAllItemGroups()) {
-            if (itemGroup instanceof FlexItemGroup) {
-                continue;
-            }
-            
-            final String addonName = itemGroup.getAddon().getName();
-            final Set<ItemGroup> groupSet = itemGroups.getOrDefault(addonName, new LinkedHashSet<>());
-            groupSet.add(itemGroup);
-            itemGroups.put(addonName, groupSet);
         }
         
         slimefunAddons.addAll(slimefunItems.keySet());
@@ -89,11 +73,7 @@ public class Utils {
         sortedSlimefunItems.sort(Comparator.comparing(SlimefunItem::getId));
         return sortedSlimefunItems;
     }
-    
-    public static Map<String, Set<ItemGroup>> getItemGroups() {
-        return Collections.unmodifiableMap(itemGroups);
-    }
-    
+
     public static void addCategoryWithOptimize(String key, JsonObject categoryObject, JsonObject rootObject) {
         final JsonObject optimizedCategory = optimizeCategory(rootObject.deepCopy(), categoryObject.deepCopy());
         rootObject.add(key, optimizedCategory == null ? categoryObject : optimizedCategory);
@@ -498,18 +478,7 @@ public class Utils {
         itemObject.add("nbt", new JsonPrimitive(nbtString));
         return itemObject;
     }
-    
-    public static JsonObject serializeItemGroup(Player player, ItemGroup itemGroup) {
-        final JsonObject groupObject = new JsonObject();
-        final JsonArray stacksArray = new JsonArray();
-        for (SlimefunItem slimefunItem : itemGroup.getItems()) {
-            stacksArray.add(slimefunItem.getId());
-        }
-        groupObject.add("icon", serializeItem(itemGroup.getItem(player)));
-        groupObject.add("stacks", stacksArray);
-        return groupObject;
-    }
-    
+
     public static void addElementToArray(JsonArray jsonArray, JsonElement jsonElement) {
         if (jsonElement instanceof JsonArray array) {
             jsonArray.addAll(array);
