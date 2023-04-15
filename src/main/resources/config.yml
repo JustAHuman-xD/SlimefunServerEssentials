@@ -1,8 +1,8 @@
-# Should SSE tell Clients what Addons are Installed? (default: true)
+# 是否向客户端发送已安装的附属列表? (默认: true)
 automatic-addons: true
 
-# Any addons SSE should not tell Addons are Installed, Only applied if automatic-addons is set to true
+# 哪些附属不应该发送到客户端。仅在 automatic-addons 为 true
 addon-blacklist: []
 
-# Should SSE tell Clients what blocks are Slimefun Blocks? (default: true)
+# 是否向客户端发包以启用自定义方块材质? (默认: true)
 custom-block-textures: true
