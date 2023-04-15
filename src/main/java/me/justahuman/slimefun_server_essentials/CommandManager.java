@@ -31,10 +31,10 @@ public class CommandManager extends BaseCommand {
 
     @Subcommand("block")
     @CommandPermission("slimefun_server_essentials.block")
-    @Description("向客户端发包，说明该方块为粘液科技方块")
+    @Description("向客户端发包，说明该方块为粘液科技方块（仅用于测试）")
     public void block(Player player, String[] args) {
-        final Block block = player.getTargetBlock(8);
-        if (block == null || BlockStorage.check(block) == null) {
+        final Block block = player.getTargetBlock(null, 8);
+        if (BlockStorage.check(block) == null) {
             player.sendMessage(ChatColors.color("&c你必须看向一个粘液科技方块"));
             return;
         }
@@ -78,8 +78,9 @@ public class CommandManager extends BaseCommand {
     @CommandPermission("slimefun_server_essentials.export.categories")
     @Description("导出指定附属的分类")
     public void exportCategories(CommandSender sender, String[] args) {
+        sender.sendMessage(ChatColors.color("&a你现在可以在wiki上查看全部教程了!"));
         if (args.length < 1 || Utils.invalidSlimefunAddon(args[0])) {
-            sender.sendMessage(ChatColors.color("&cInvalid Slimefun Addon!"));
+            sender.sendMessage(ChatColors.color("&c无效的附属名称!"));
             return;
         }
         
@@ -116,7 +117,7 @@ public class CommandManager extends BaseCommand {
                     throw new IOException();
                 }
             } catch(IOException | SecurityException e) {
-                sender.sendMessage(ChatColors.color("&cAn error occurred while exporting! (Check the Console)"));
+                sender.sendMessage(ChatColors.color("&c导出时发生错误! (检查控制台)"));
                 e.printStackTrace();
                 return;
             }
@@ -128,9 +129,9 @@ public class CommandManager extends BaseCommand {
             fileWriter.flush();
             fileWriter.close();
         
-            sender.sendMessage(ChatColors.color("&aSuccessfully exported to " + filePath + "!"));
+            sender.sendMessage(ChatColors.color("&a成功导出至 " + filePath + "!"));
         } catch (IOException | SecurityException e) {
-            sender.sendMessage(ChatColors.color("&cAn error occurred while exporting! (Check the Console)"));
+            sender.sendMessage(ChatColors.color("&c导出时发生错误! (检查控制台)"));
             e.printStackTrace();
         }
     }

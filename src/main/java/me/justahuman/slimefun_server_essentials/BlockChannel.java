@@ -15,7 +15,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerRegisterChannelEvent;
 import org.bukkit.plugin.messaging.PluginMessageListener;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -30,7 +29,7 @@ public class BlockChannel implements PluginMessageListener, Listener {
     private static final Set<UUID> players = new HashSet<>();
     public static final String channel = "slimefun_server_essentials:block";
 
-    public void init(@Nonnull SlimefunServerEssentials slimefunServerEssentials) {
+    public BlockChannel(@Nonnull SlimefunServerEssentials slimefunServerEssentials) {
         slimefunServerEssentials.getServer().getPluginManager().registerEvents(this, slimefunServerEssentials);
         slimefunServerEssentials.getServer().getMessenger().registerIncomingPluginChannel(slimefunServerEssentials, channel, this);
         slimefunServerEssentials.getServer().getMessenger().registerOutgoingPluginChannel(slimefunServerEssentials, channel);
@@ -45,18 +44,8 @@ public class BlockChannel implements PluginMessageListener, Listener {
         players.add(event.getPlayer().getUniqueId());
     }
 
-    @ParametersAreNonnullByDefault
-    public static void sendSlimefunBlock(Player player, BlockPosition blockPosition, String id) {
-        final ByteArrayDataOutput packet = ByteStreams.newDataOutput();
-        packet.writeInt(blockPosition.getX());
-        packet.writeInt(blockPosition.getY());
-        packet.writeInt(blockPosition.getZ());
-        packet.writeUTF(id);
-        player.sendPluginMessage(SlimefunServerEssentials.getInstance(), channel, packet.toByteArray());
-    }
-
     @Override
-    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
+    public void onPluginMessageReceived(@Nonnull String channel, @Nonnull Player player, @Nonnull byte[] message) {
         Bukkit.getScheduler().runTaskAsynchronously(SlimefunServerEssentials.getInstance(), () -> {
             if (!channel.equals(BlockChannel.channel) || BlockStorage.getStorage(player.getWorld()) == null) {
                 return;
@@ -108,7 +97,7 @@ public class BlockChannel implements PluginMessageListener, Listener {
 //            final Player player = Bukkit.getPlayer(uuid);
 //            if (player != null) {
 //                final BlockPosition blockPosition = new BlockPosition(event.getBlockPlaced());
-//                cachedSlimefunBlocks.merge(new ChunkPosition(player.getChunk()), new HashSet<>(), (s1, s2) -> {
+//                cachedSlimefunBlocks.merge(new ChunkPosition(player.getLocation()), new HashSet<>(), (s1, s2) -> {
 //                    s1.addAll(s2);
 //                    return s1;
 //                });
@@ -126,7 +115,7 @@ public class BlockChannel implements PluginMessageListener, Listener {
 //            final Player player = Bukkit.getPlayer(uuid);
 //            if (player != null && block.getWorld() == player.getWorld() && player.getLocation().distanceSquared(block.getLocation()) <= 64) {
 //                final BlockPosition blockPosition = new BlockPosition(event.getBlockBroken());
-//                cachedSlimefunBlocks.merge(new ChunkPosition(player.getChunk()), new HashSet<>(), (s1, s2) -> {
+//                cachedSlimefunBlocks.merge(new ChunkPosition(player.getLocation()), new HashSet<>(), (s1, s2) -> {
 //                    s1.addAll(s2);
 //                    return s1;
 //                });
@@ -135,4 +124,14 @@ public class BlockChannel implements PluginMessageListener, Listener {
 //            }
 //        }
 //    }
+
+    @ParametersAreNonnullByDefault
+    public static void sendSlimefunBlock(Player player, BlockPosition blockPosition, String id) {
+        final ByteArrayDataOutput packet = ByteStreams.newDataOutput();
+        packet.writeInt(blockPosition.getX());
+        packet.writeInt(blockPosition.getY());
+        packet.writeInt(blockPosition.getZ());
+        packet.writeUTF(id);
+        player.sendPluginMessage(SlimefunServerEssentials.getInstance(), channel, packet.toByteArray());
+    }
 }

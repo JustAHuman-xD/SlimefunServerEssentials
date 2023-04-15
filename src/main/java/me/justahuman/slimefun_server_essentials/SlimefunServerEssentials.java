@@ -4,6 +4,7 @@ import co.aikar.commands.BukkitCommandCompletionContext;
 import co.aikar.commands.CommandCompletions;
 import co.aikar.commands.PaperCommandManager;
 import lombok.Getter;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
@@ -24,12 +25,20 @@ public final class SlimefunServerEssentials extends JavaPlugin {
             return;
         }
 
+        new Metrics(instance, 18206);
+
         final PaperCommandManager paperCommandManager = new PaperCommandManager(this);
         final CommandCompletions<BukkitCommandCompletionContext> commandCompletions = paperCommandManager.getCommandCompletions();
         commandCompletions.registerAsyncCompletion("addons", c -> Utils.getSlimefunAddonNames());
         paperCommandManager.registerCommand(new CommandManager());
-        new AddonChannel().init(instance);
-        new BlockChannel().init(instance);
+
+        if (getConfig().getBoolean("automatic-addons", true)) {
+            new AddonChannel(instance, getConfig().getStringList("addon-blacklist"));
+        }
+
+        if (getConfig().getBoolean("custom-block-textures", true)) {
+            new BlockChannel(instance);
+        }
     }
 
     @Override

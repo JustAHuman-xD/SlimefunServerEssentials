@@ -1,0 +1,8 @@
+# Should SSE tell Clients what Addons are Installed? (default: true)
+automatic-addons: true
+
+# Any addons SSE should not tell Addons are Installed, Only applied if automatic-addons is set to true
+addon-blacklist: []
+
+# Should SSE tell Clients what blocks are Slimefun Blocks? (default: true)
+custom-block-textures: true
