@@ -16,4 +16,3 @@
 
 1. 使用压缩软件打开mod文件，并打开`/assets/slimefun_essentials/slimefun`文件夹；
 2. 将导出数据文件夹中的2个文件夹`categories`和`items`替换掉mod中相应的文件夹。
-3. 
