@@ -1,6 +1,6 @@
 name: SlimefunServerEssentials
 version: '${project.version}'
-main: me.justahuman.recipe_exporter.SlimefunServerEssentials
+main: me.justahuman.slimefun_server_essentials.SlimefunServerEssentials
 api-version: 1.19
 prefix: SSE
 depend: [ Slimefun ]
