@@ -9,6 +9,7 @@ import co.aikar.commands.annotation.Subcommand;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.blocks.BlockPosition;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.common.ChatColors;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
@@ -72,7 +73,7 @@ public class CommandManager extends BaseCommand {
             exportItems(sender, new String[] {addon});
         }
     }
-    
+
     @Subcommand("export categories")
     @CommandCompletion("@addons")
     @CommandPermission("slimefun_server_essentials.export.categories")
@@ -95,6 +96,8 @@ public class CommandManager extends BaseCommand {
                 Utils.addCategoryWithOptimize(slimefunItem.getId(), categoryObject, root);
             }
         }
+        root.add("MULTIBLOCK", Utils.getMultiblockRecipes().deepCopy());
+        Utils.clearMultiblockRecipes();
     
         exportToFile(sender, root, filePath);
     }

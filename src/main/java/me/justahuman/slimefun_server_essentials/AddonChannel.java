@@ -11,26 +11,26 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class AddonChannel implements Listener {
-    public static final String channel = "slimefun_server_essentials:addon";
+    public static final String CHANNEL = "slimefun_server_essentials:addon";
     private final List<String> blacklist;
 
     public AddonChannel(@Nonnull SlimefunServerEssentials slimefunServerEssentials, @Nonnull List<String> blacklist) {
         this.blacklist = blacklist;
 
         slimefunServerEssentials.getServer().getPluginManager().registerEvents(this, slimefunServerEssentials);
-        slimefunServerEssentials.getServer().getMessenger().registerOutgoingPluginChannel(slimefunServerEssentials, channel);
+        slimefunServerEssentials.getServer().getMessenger().registerOutgoingPluginChannel(slimefunServerEssentials, CHANNEL);
     }
 
     @EventHandler
     private void onPlayerConnect(PlayerRegisterChannelEvent event) {
-        if (!event.getChannel().equals(channel)) {
+        if (!event.getChannel().equals(CHANNEL)) {
             return;
         }
 
         final Player player = event.getPlayer();
         final ByteArrayDataOutput clear = ByteStreams.newDataOutput();
         clear.writeUTF("clear");
-        player.sendPluginMessage(SlimefunServerEssentials.getInstance(), channel, clear.toByteArray());
+        player.sendPluginMessage(SlimefunServerEssentials.getInstance(), CHANNEL, clear.toByteArray());
         for (String slimefunAddon : Utils.getSlimefunAddonNames()) {
             if (blacklist.contains(slimefunAddon)) {
                 continue;
@@ -38,7 +38,7 @@ public class AddonChannel implements Listener {
 
             final ByteArrayDataOutput addon = ByteStreams.newDataOutput();
             addon.writeUTF(slimefunAddon);
-            player.sendPluginMessage(SlimefunServerEssentials.getInstance(), channel, addon.toByteArray());
+            player.sendPluginMessage(SlimefunServerEssentials.getInstance(), CHANNEL, addon.toByteArray());
         }
     }
 }

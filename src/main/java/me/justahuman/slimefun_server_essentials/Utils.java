@@ -38,6 +38,7 @@ import java.util.Set;
 public class Utils {
     private static final Set<String> slimefunAddons = new HashSet<>();
     private static final Map<String, Set<SlimefunItem>> slimefunItems = new HashMap<>();
+    private static final JsonObject multiblockRecipes = new JsonObject();
     static {
         for (SlimefunItem slimefunItem : Slimefun.getRegistry().getEnabledSlimefunItems()) {
             if (slimefunItem instanceof VanillaItem) {
@@ -50,6 +51,7 @@ public class Utils {
         }
         
         slimefunAddons.addAll(slimefunItems.keySet());
+        multiblockRecipes.add("recipes", new JsonArray());
     }
     
     public static boolean invalidSlimefunAddon(String addon) {
@@ -66,6 +68,10 @@ public class Utils {
     
     public static Set<SlimefunItem> getSlimefunItems(String addon) {
         return Collections.unmodifiableSet(slimefunItems.getOrDefault(addon, new HashSet<>()));
+    }
+
+    public static JsonObject getMultiblockRecipes() {
+        return multiblockRecipes;
     }
     
     public static List<SlimefunItem> getSortedSlimefunItems(String addon) {
@@ -159,6 +165,7 @@ public class Utils {
                 addRecipeWithOptimize(recipesArray, new RecipeBuilder().inputs(inputs).outputs(outputs).build());
             }
             categoryObject.addProperty("type", "grid3");
+            addMultiblockRecipe(slimefunItem);
         } else if (slimefunItem instanceof AncientAltar ancientAltar) {
             for (AltarRecipe altarRecipe : ancientAltar.getRecipes()) {
                 final List<ItemStack> altarInputs = altarRecipe.getInput();
@@ -239,7 +246,11 @@ public class Utils {
         
         return categoryObject;
     }
-    
+
+    private static void addMultiblockRecipe(SlimefunItem slimefunItem) {
+        multiblockRecipes.getAsJsonArray("recipes").add(new RecipeBuilder().inputs(slimefunItem.getRecipe()).outputs(new ItemStack[] {slimefunItem.getItem()} ).build());
+    }
+
     public static void addRecipeWithOptimize(JsonArray recipesArray, JsonObject recipeObject) {
         removeWhitespace(recipeObject);
         final Pair<Integer, JsonObject> optimizedRecipe = optimizeRecipe(recipesArray.deepCopy(), recipeObject.deepCopy());
@@ -489,5 +500,9 @@ public class Utils {
     
     public static void log(String log) {
         SlimefunServerEssentials.getInstance().getLogger().info(log);
+    }
+
+    public static void clearMultiblockRecipes() {
+        multiblockRecipes.add("recipes", new JsonArray());
     }
 }

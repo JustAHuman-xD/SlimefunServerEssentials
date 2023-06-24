@@ -31,17 +31,17 @@ import java.util.UUID;
 public class BlockChannel implements PluginMessageListener, Listener {
     private static final Map<ChunkPosition, Set<BlockPosition>> cachedSlimefunBlocks = new HashMap<>();
     private static final Set<UUID> players = new HashSet<>();
-    public static final String channel = "slimefun_server_essentials:block";
+    public static final String CHANNEL = "slimefun_server_essentials:block";
 
     public BlockChannel(@Nonnull SlimefunServerEssentials slimefunServerEssentials) {
         slimefunServerEssentials.getServer().getPluginManager().registerEvents(this, slimefunServerEssentials);
-        slimefunServerEssentials.getServer().getMessenger().registerIncomingPluginChannel(slimefunServerEssentials, channel, this);
-        slimefunServerEssentials.getServer().getMessenger().registerOutgoingPluginChannel(slimefunServerEssentials, channel);
+        slimefunServerEssentials.getServer().getMessenger().registerIncomingPluginChannel(slimefunServerEssentials, CHANNEL, this);
+        slimefunServerEssentials.getServer().getMessenger().registerOutgoingPluginChannel(slimefunServerEssentials, CHANNEL);
     }
 
     @EventHandler
     public void onPlayerRegisterChannel(PlayerRegisterChannelEvent event) {
-        if (!event.getChannel().equals(channel)) {
+        if (!event.getChannel().equals(CHANNEL)) {
             return;
         }
 
@@ -51,7 +51,7 @@ public class BlockChannel implements PluginMessageListener, Listener {
     @Override
     public void onPluginMessageReceived(@Nonnull String channel, @Nonnull Player player, @Nonnull byte[] message) {
         Bukkit.getScheduler().runTaskAsynchronously(SlimefunServerEssentials.getInstance(), () -> {
-            if (!channel.equals(BlockChannel.channel) || BlockStorage.getStorage(player.getWorld()) == null) {
+            if (!channel.equals(BlockChannel.CHANNEL) || BlockStorage.getStorage(player.getWorld()) == null) {
                 return;
             }
 
@@ -114,7 +114,7 @@ public class BlockChannel implements PluginMessageListener, Listener {
     // Slimefun Block Break Event
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     private void onSlimefunBlockBreak(SlimefunBlockBreakEvent event) {
-        final Block block = event.getBlock();
+        final Block block = event.getBlockBroken();
         for (UUID uuid : players) {
             final Player player = Bukkit.getPlayer(uuid);
             if (player != null && block.getWorld() == player.getWorld() && player.getLocation().distanceSquared(block.getLocation()) <= 64) {
@@ -136,6 +136,6 @@ public class BlockChannel implements PluginMessageListener, Listener {
         packet.writeInt(blockPosition.getY());
         packet.writeInt(blockPosition.getZ());
         packet.writeUTF(id);
-        player.sendPluginMessage(SlimefunServerEssentials.getInstance(), channel, packet.toByteArray());
+        player.sendPluginMessage(SlimefunServerEssentials.getInstance(), CHANNEL, packet.toByteArray());
     }
 }
