@@ -9,7 +9,6 @@ import co.aikar.commands.annotation.Subcommand;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
-import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.blocks.BlockPosition;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.common.ChatColors;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
@@ -27,20 +26,21 @@ import java.util.List;
 @SuppressWarnings("unused")
 @CommandAlias("slimefun_server_essentials")
 public class CommandManager extends BaseCommand {
-    private static final Gson gson = new Gson().newBuilder().create();
-    private static final String path = "plugins/SlimefunServerEssentials/exported/";
+    private static final Gson GSON = new Gson().newBuilder().create();
+    private static final String PATH = "plugins/SlimefunServerEssentials/exported/";
 
     @Subcommand("block")
     @CommandPermission("slimefun_server_essentials.block")
     @Description("Sends the Slimefun Block Packet to tell a Client a Block is a Slimefun Block, Used in Testing")
     public void block(Player player, String[] args) {
         final Block block = player.getTargetBlock(null, 8);
-        if (BlockStorage.check(block) == null) {
+        final SlimefunItem slimefunItem = BlockStorage.check(block);
+        if (slimefunItem == null) {
             player.sendMessage(ChatColors.color("&cYou must be looking at a Slimefun Block"));
             return;
         }
 
-        BlockChannel.sendSlimefunBlock(player, new BlockPosition(block), BlockStorage.check(block).getId());
+        BlockChannel.sendSlimefunBlock(player, new BlockPosition(block), slimefunItem.getId());
     }
     
     @Subcommand("export items")
@@ -55,7 +55,7 @@ public class CommandManager extends BaseCommand {
         
         final String addon = args[0];
         final JsonObject root = new JsonObject();
-        final String filePath = path + "items/" + addon.toLowerCase() + ".json";
+        final String filePath = PATH + "items/" + addon.toLowerCase() + ".json";
         final List<SlimefunItem> slimefunItems = Utils.getSortedSlimefunItems(addon);
         
         for (SlimefunItem slimefunItem : slimefunItems) {
@@ -87,7 +87,7 @@ public class CommandManager extends BaseCommand {
         
         final String addon = args[0];
         final JsonObject root = new JsonObject();
-        final String filePath = path + "categories/" + addon.toLowerCase() + ".json";
+        final String filePath = PATH + "categories/" + addon.toLowerCase() + ".json";
         final List<SlimefunItem> slimefunItems = Utils.getSortedSlimefunItems(addon);
     
         for (SlimefunItem slimefunItem : slimefunItems) {
@@ -128,7 +128,7 @@ public class CommandManager extends BaseCommand {
     
         try {
             final BufferedWriter fileWriter = new BufferedWriter(new FileWriter(filePath, StandardCharsets.UTF_8));
-            gson.toJson(root, fileWriter);
+            GSON.toJson(root, fileWriter);
             fileWriter.flush();
             fileWriter.close();
         

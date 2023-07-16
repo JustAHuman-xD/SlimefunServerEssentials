@@ -29,8 +29,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class BlockChannel implements PluginMessageListener, Listener {
-    private static final Map<ChunkPosition, Set<BlockPosition>> cachedSlimefunBlocks = new HashMap<>();
-    private static final Set<UUID> players = new HashSet<>();
+    private static final Map<ChunkPosition, Set<BlockPosition>> BLOCK_CACHE = new HashMap<>();
+    private static final Set<UUID> PLAYERS = new HashSet<>();
     public static final String CHANNEL = "slimefun_server_essentials:block";
 
     public BlockChannel(@Nonnull SlimefunServerEssentials slimefunServerEssentials) {
@@ -45,34 +45,37 @@ public class BlockChannel implements PluginMessageListener, Listener {
             return;
         }
 
-        players.add(event.getPlayer().getUniqueId());
+        PLAYERS.add(event.getPlayer().getUniqueId());
     }
 
     @Override
     public void onPluginMessageReceived(@Nonnull String channel, @Nonnull Player player, @Nonnull byte[] message) {
         Bukkit.getScheduler().runTaskAsynchronously(SlimefunServerEssentials.getInstance(), () -> {
-            if (!channel.equals(BlockChannel.CHANNEL) || BlockStorage.getStorage(player.getWorld()) == null) {
+            final World world = player.getWorld();
+            final BlockStorage blockStorage = BlockStorage.getStorage(world);
+            if (!channel.equals(BlockChannel.CHANNEL) || blockStorage == null) {
                 return;
             }
 
-            final World world = player.getWorld();
-            final BlockStorage blockStorage = BlockStorage.getStorage(world);
             final ByteArrayDataInput packet = ByteStreams.newDataInput(message);
             final int chunkX = packet.readInt();
             final int chunkZ = packet.readInt();
             final ChunkPosition chunkPosition = new ChunkPosition(world, chunkX, chunkZ);
 
-            if (cachedSlimefunBlocks.containsKey(chunkPosition)) {
-                for (BlockPosition blockPosition : cachedSlimefunBlocks.get(chunkPosition)) {
+            if (BLOCK_CACHE.containsKey(chunkPosition)) {
+                final Set<BlockPosition> blockPositions = BLOCK_CACHE.get(chunkPosition);
+                blockPositions.removeIf(blockPosition -> BlockStorage.check(blockPosition.toLocation()) == null);
+
+                for (BlockPosition blockPosition : blockPositions) {
                     sendSlimefunBlock(player, blockPosition, BlockStorage.getLocationInfo(blockPosition.toLocation(), "id"));
                 }
+
+                BLOCK_CACHE.put(chunkPosition, blockPositions);
                 return;
             }
 
             final Map<Location, Config> rawStorage = blockStorage.getRawStorage();
             final Set<BlockPosition> blockPositions = new HashSet<>();
-            final Map<BlockPosition, String> ids = new HashMap<>();
-
             for (Map.Entry<Location, Config> entry : rawStorage.entrySet()) {
                 final Location location = entry.getKey();
                 final Config config = entry.getValue();
@@ -82,30 +85,28 @@ public class BlockChannel implements PluginMessageListener, Listener {
 
                 final BlockPosition blockPosition = new BlockPosition(location);
                 blockPositions.add(blockPosition);
-                ids.put(blockPosition, config.getString("id"));
+                sendSlimefunBlock(player, blockPosition, config.getString("id"));
             }
 
-            for (Map.Entry<BlockPosition, String> entry : ids.entrySet()) {
-                sendSlimefunBlock(player, entry.getKey(), entry.getValue());
-            }
-
-            cachedSlimefunBlocks.put(chunkPosition, blockPositions);
+            BLOCK_CACHE.put(chunkPosition, blockPositions);
         });
     }
 
     // Slimefun Block Place Event
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     private void onSlimefunBlockPlace(SlimefunBlockPlaceEvent event) {
-        final String id = event.getSlimefunItem().getId();
-        for (UUID uuid : players) {
-            final Player player = Bukkit.getPlayer(uuid);
-            if (player != null) {
-                final BlockPosition blockPosition = new BlockPosition(event.getBlockPlaced());
-                cachedSlimefunBlocks.merge(new ChunkPosition(player.getLocation()), new HashSet<>(), (s1, s2) -> {
-                    s1.addAll(s2);
-                    return s1;
-                });
+        final Block block = event.getBlockPlaced();
+        final BlockPosition blockPosition = new BlockPosition(block);
+        final ChunkPosition chunkPosition = new ChunkPosition(blockPosition.getChunk());
+        final Set<BlockPosition> blockPositions = BLOCK_CACHE.getOrDefault(chunkPosition, new HashSet<>());
 
+        blockPositions.add(blockPosition);
+        BLOCK_CACHE.put(chunkPosition, blockPositions);
+
+        final String id = event.getSlimefunItem().getId();
+        for (UUID uuid : PLAYERS) {
+            final Player player = Bukkit.getPlayer(uuid);
+            if (player != null && block.getWorld() == player.getWorld() && player.getLocation().distanceSquared(block.getLocation()) <= Math.pow(player.getClientViewDistance() * 16D, 2)) {
                 sendSlimefunBlock(player, blockPosition, id);
             }
         }
@@ -115,15 +116,16 @@ public class BlockChannel implements PluginMessageListener, Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     private void onSlimefunBlockBreak(SlimefunBlockBreakEvent event) {
         final Block block = event.getBlockBroken();
-        for (UUID uuid : players) {
-            final Player player = Bukkit.getPlayer(uuid);
-            if (player != null && block.getWorld() == player.getWorld() && player.getLocation().distanceSquared(block.getLocation()) <= 64) {
-                final BlockPosition blockPosition = new BlockPosition(event.getBlockBroken());
-                cachedSlimefunBlocks.merge(new ChunkPosition(player.getLocation()), new HashSet<>(), (s1, s2) -> {
-                    s1.addAll(s2);
-                    return s1;
-                });
+        final BlockPosition blockPosition = new BlockPosition(block);
+        final ChunkPosition chunkPosition = new ChunkPosition(blockPosition.getChunk());
+        final Set<BlockPosition> blockPositions = BLOCK_CACHE.getOrDefault(chunkPosition, new HashSet<>());
 
+        blockPositions.remove(blockPosition);
+        BLOCK_CACHE.put(chunkPosition, blockPositions);
+
+        for (UUID uuid : PLAYERS) {
+            final Player player = Bukkit.getPlayer(uuid);
+            if (player != null && block.getWorld() == player.getWorld() && player.getLocation().distanceSquared(block.getLocation()) <= Math.pow(player.getClientViewDistance() * 16D, 2)) {
                 sendSlimefunBlock(player, blockPosition, " ");
             }
         }
