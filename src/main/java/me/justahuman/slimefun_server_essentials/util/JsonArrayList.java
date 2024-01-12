@@ -1,4 +1,4 @@
-package me.justahuman.slimefun_server_essentials;
+package me.justahuman.slimefun_server_essentials.util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

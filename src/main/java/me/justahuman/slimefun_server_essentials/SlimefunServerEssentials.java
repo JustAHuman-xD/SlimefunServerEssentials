@@ -4,6 +4,9 @@ import co.aikar.commands.BukkitCommandCompletionContext;
 import co.aikar.commands.CommandCompletions;
 import co.aikar.commands.PaperCommandManager;
 import lombok.Getter;
+import me.justahuman.slimefun_server_essentials.channels.AddonChannel;
+import me.justahuman.slimefun_server_essentials.channels.BlockChannel;
+import me.justahuman.slimefun_server_essentials.util.Utils;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -11,6 +14,12 @@ public final class SlimefunServerEssentials extends JavaPlugin {
 
     @Getter
     private static SlimefunServerEssentials instance;
+
+    @Getter
+    private static AddonChannel addonChannel = null;
+
+    @Getter
+    private static BlockChannel blockChannel = null;
 
     @Override
     public void onEnable() {
@@ -24,11 +33,11 @@ public final class SlimefunServerEssentials extends JavaPlugin {
         paperCommandManager.registerCommand(new CommandManager());
 
         if (getConfig().getBoolean("automatic-addons", true)) {
-            new AddonChannel(instance, getConfig().getStringList("addon-blacklist"));
+            addonChannel = new AddonChannel(getConfig().getStringList("addon-blacklist"));
         }
 
         if (getConfig().getBoolean("custom-block-textures", true)) {
-            new BlockChannel(instance);
+            blockChannel = new BlockChannel();
         }
     }
 

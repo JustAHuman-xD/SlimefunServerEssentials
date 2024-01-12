@@ -11,6 +11,7 @@ import com.google.gson.JsonObject;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.blocks.BlockPosition;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.common.ChatColors;
+import me.justahuman.slimefun_server_essentials.util.Utils;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -22,6 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
 @CommandAlias("slimefun_server_essentials")
@@ -40,7 +42,8 @@ public class CommandManager extends BaseCommand {
             return;
         }
 
-        BlockChannel.sendSlimefunBlock(player, new BlockPosition(block), slimefunItem.getId());
+        Optional.ofNullable(SlimefunServerEssentials.getBlockChannel())
+                .ifPresent(blockChannel -> blockChannel.sendSlimefunBlock(player, new BlockPosition(block), slimefunItem.getId()));
     }
     
     @Subcommand("export items")
