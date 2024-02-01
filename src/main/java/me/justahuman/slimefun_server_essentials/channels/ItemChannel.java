@@ -3,7 +3,7 @@ package me.justahuman.slimefun_server_essentials.channels;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import org.bukkit.entity.Player;
-
+import java.util.List;
 import javax.annotation.Nonnull;
 
 public class ItemChannel extends AbstractChannel {
