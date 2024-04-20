@@ -5,7 +5,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import de.tr7zw.nbtapi.NBTItem;
+import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.api.items.groups.LockedItemGroup;
+import io.github.thebusybiscuit.slimefun4.api.items.groups.NestedItemGroup;
+import io.github.thebusybiscuit.slimefun4.api.items.groups.SeasonalItemGroup;
+import io.github.thebusybiscuit.slimefun4.api.items.groups.SubItemGroup;
 import io.github.thebusybiscuit.slimefun4.core.attributes.RecipeDisplayItem;
 import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
@@ -25,8 +30,11 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineFuel;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.MachineRecipe;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,18 +48,31 @@ import java.util.Set;
 public class Utils {
     private static final Set<String> slimefunAddons = new HashSet<>();
     private static final Map<String, Set<SlimefunItem>> slimefunItems = new HashMap<>();
+    private static final Map<String, Set<ItemGroup>> itemGroups = new HashMap<>();
+    private static final Map<NamespacedKey, List<SubItemGroup>> subItemGroups = new HashMap<>();
     private static final JsonObject multiblockRecipes = new JsonObject();
-    static {
+
+    public static void load() {
         for (SlimefunItem slimefunItem : Slimefun.getRegistry().getEnabledSlimefunItems()) {
             if (slimefunItem instanceof VanillaItem) {
                 continue;
             }
             final String addonName = slimefunItem.getAddon().getName();
-            final Set<SlimefunItem> itemSet = slimefunItems.getOrDefault(addonName, new HashSet<>());
-            itemSet.add(slimefunItem);
-            slimefunItems.put(addonName, itemSet);
+            final Set<SlimefunItem> items = slimefunItems.getOrDefault(addonName, new HashSet<>());
+            items.add(slimefunItem);
+            slimefunItems.put(addonName, items);
         }
-        
+
+        for (ItemGroup itemGroup : Slimefun.getRegistry().getAllItemGroups()) {
+            if (itemGroup.getAddon() == null || itemGroup.getItems().isEmpty()) {
+                continue;
+            }
+            final String addonName = itemGroup.getAddon().getName();
+            final Set<ItemGroup> groups = itemGroups.getOrDefault(addonName, new HashSet<>());
+            groups.add(itemGroup);
+            itemGroups.put(addonName, groups);
+        }
+
         slimefunAddons.addAll(slimefunItems.keySet());
         multiblockRecipes.add("recipes", new JsonArray());
     }
@@ -72,6 +93,23 @@ public class Utils {
         return Collections.unmodifiableSet(slimefunItems.getOrDefault(addon, new HashSet<>()));
     }
 
+    public static Set<ItemGroup> getItemGroups(String addon) {
+        return Collections.unmodifiableSet(itemGroups.getOrDefault(addon, new HashSet<>()));
+    }
+
+    public static List<SubItemGroup> getSubItemGroups(NestedItemGroup nestedItemGroup) {
+        try {
+            final Field field = NestedItemGroup.class.getDeclaredField("subGroups");
+            field.setAccessible(true);
+
+            final List<SubItemGroup> subGroups = (List<SubItemGroup>) field.get(nestedItemGroup);
+            subItemGroups.put(nestedItemGroup.getKey(), subGroups);
+            return subGroups;
+        } catch (Exception ignored) {
+            return new ArrayList<>();
+        }
+    }
+
     public static JsonObject getMultiblockRecipes() {
         return multiblockRecipes;
     }
@@ -80,6 +118,12 @@ public class Utils {
         final List<SlimefunItem> sortedSlimefunItems = new ArrayList<>(getSlimefunItems(addon));
         sortedSlimefunItems.sort(Comparator.comparing(SlimefunItem::getId));
         return sortedSlimefunItems;
+    }
+
+    public static List<ItemGroup> getSortedItemGroups(String addon) {
+        final List<ItemGroup> sortedItemGroups = new ArrayList<>(getItemGroups(addon));
+        sortedItemGroups.sort(Comparator.comparingInt(ItemGroup::getTier));
+        return sortedItemGroups;
     }
 
     public static void addCategoryWithOptimize(String key, JsonObject categoryObject, JsonObject rootObject) {
@@ -506,5 +550,50 @@ public class Utils {
 
     public static void clearMultiblockRecipes() {
         multiblockRecipes.add("recipes", new JsonArray());
+    }
+
+    public static JsonObject serializeItemGroup(Player player, ItemGroup itemGroup) {
+        final JsonObject groupObject = new JsonObject();
+        final JsonArray items = new JsonArray();
+        groupObject.add("item", serializeItem(itemGroup.getItem(player)));
+        for (SlimefunItem slimefunItem : itemGroup.getItems()) {
+            items.add(slimefunItem.getId());
+        }
+
+        if (!items.isEmpty()) {
+            groupObject.add("items", items);
+        }
+
+        if (itemGroup instanceof NestedItemGroup nestedGroup) {
+            final JsonArray children = new JsonArray();
+            for (ItemGroup child : getSubItemGroups(nestedGroup)) {
+                children.add(child.getKey().toString());
+            }
+
+            if (!children.isEmpty()) {
+                groupObject.add("nested", children);
+            }
+        }
+
+        if (itemGroup instanceof LockedItemGroup lockedGroup) {
+            final JsonArray parents = new JsonArray();
+            for (ItemGroup parent : lockedGroup.getParents()) {
+                parents.add(parent.getKey().toString());
+            }
+
+            if (!parents.isEmpty()) {
+                groupObject.add("locked", parents);
+            }
+        }
+
+        if (itemGroup instanceof SeasonalItemGroup seasonalGroup) {
+            groupObject.addProperty("seasonal", seasonalGroup.getMonth().getValue());
+        }
+
+        if (itemGroup instanceof SubItemGroup) {
+            groupObject.addProperty("sub", true);
+        }
+
+        return groupObject;
     }
 }
