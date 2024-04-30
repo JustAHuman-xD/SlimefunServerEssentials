@@ -1,4 +1,4 @@
-package me.justahuman.slimefun_server_essentials;
+package me.justahuman.slimefun_server_essentials.features;
 
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
@@ -10,8 +10,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.blocks.BlockPosition;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.common.ChatColors;
+import me.justahuman.slimefun_server_essentials.SlimefunServerEssentials;
+import me.justahuman.slimefun_server_essentials.recipe.RecipeExporter;
+import me.justahuman.slimefun_server_essentials.util.JsonUtils;
 import me.justahuman.slimefun_server_essentials.util.Utils;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import org.bukkit.block.Block;
@@ -65,7 +69,7 @@ public class CommandManager extends BaseCommand {
         final List<ItemGroup> itemGroups = Utils.getSortedItemGroups(addon);
 
         for (ItemGroup itemGroup : itemGroups) {
-            root.add(itemGroup.getKey().getKey(), Utils.serializeItemGroup(player, itemGroup));
+            root.add(itemGroup.getKey().getKey(), JsonUtils.serializeItemGroup(player, itemGroup));
         }
 
         exportToFile(player, root, filePath);
@@ -88,9 +92,9 @@ public class CommandManager extends BaseCommand {
         final JsonObject root = new JsonObject();
         final String filePath = PATH + "items/" + addon.toLowerCase() + ".json";
         final List<SlimefunItem> slimefunItems = Utils.getSortedSlimefunItems(addon);
-        
+
         for (SlimefunItem slimefunItem : slimefunItems) {
-            root.add(slimefunItem.getId(), Utils.serializeItem(slimefunItem));
+            root.add(slimefunItem.getId(), JsonUtils.serializeItem(slimefunItem));
         }
         
         exportToFile(player, root, filePath);
@@ -113,15 +117,26 @@ public class CommandManager extends BaseCommand {
         final JsonObject root = new JsonObject();
         final String filePath = PATH + "recipes/" + addon.toLowerCase() + ".json";
         final List<SlimefunItem> slimefunItems = Utils.getSortedSlimefunItems(addon);
-    
+
+        // Add Child Recipes
         for (SlimefunItem slimefunItem : slimefunItems) {
-            final JsonObject categoryObject = Utils.getCategory(slimefunItem);
+            final JsonObject categoryObject = RecipeExporter.getCategory(slimefunItem);
             if (!categoryObject.keySet().isEmpty()) {
-                Utils.addCategoryWithOptimize(slimefunItem.getId(), categoryObject, root);
+                RecipeExporter.addCategoryWithOptimize(slimefunItem.getId(), categoryObject, root);
             }
         }
-        root.add("MULTIBLOCK", Utils.getMultiblockRecipes().deepCopy());
-        Utils.clearMultiblockRecipes();
+
+        // Add any missing parent recipes (custom ones, i.e. multiblocks, harvest, etc)
+        for (SlimefunItem slimefunItem : slimefunItems) {
+            final RecipeType recipeType = slimefunItem.getRecipeType();
+            if (recipeType.toItem() == null || recipeType.getMachine() != null || SlimefunItem.getByItem(recipeType.toItem()) != null) {
+                continue;
+            }
+
+            final JsonObject categoryObject = JsonUtils.getObjectOrDefault(root, recipeType.getKey().getKey(), new JsonObject());
+            RecipeExporter.exportParentCategory(slimefunItem, categoryObject);
+            root.add(recipeType.getKey().getKey(), categoryObject);
+        }
     
         exportToFile(player, root, filePath);
     }

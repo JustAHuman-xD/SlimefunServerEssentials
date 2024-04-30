@@ -3,7 +3,6 @@ package me.justahuman.slimefun_server_essentials.channels;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import me.justahuman.slimefun_server_essentials.SlimefunServerEssentials;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -54,12 +53,10 @@ public abstract class AbstractChannel implements PluginMessageListener, Listener
     @Override
     @ParametersAreNonnullByDefault
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-        Bukkit.getScheduler().runTaskAsynchronously(SlimefunServerEssentials.getInstance(), () -> {
-            if (!channel.equals(getChannel())) {
-                return;
-            }
+        if (!channel.equals(getChannel())) {
+            return;
+        }
 
-            onMessageReceived(player, message);
-        });
+        onMessageReceived(player, message);
     }
 }

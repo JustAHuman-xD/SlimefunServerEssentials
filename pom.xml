@@ -87,6 +87,11 @@
 
     <repositories>
         <repository>
+            <id>org.metamechanists</id>
+            <url>https://repo.metamechanists.org/releases/</url>
+        </repository>
+
+        <repository>
             <id>paper-repo</id>
             <url>https://repo.destroystokyo.com/repository/maven-public/</url>
         </repository>
@@ -129,7 +134,7 @@
         <dependency>
             <groupId>de.tr7zw</groupId>
             <artifactId>item-nbt-api-plugin</artifactId>
-            <version>2.11.1</version>
+            <version>2.12.3</version>
             <scope>compile</scope>
         </dependency>
 
@@ -166,6 +171,15 @@
             <artifactId>acf-paper</artifactId>
             <version>0.5.1-SNAPSHOT</version>
             <scope>compile</scope>
+        </dependency>
+
+        <!-- Hooks -->
+
+        <dependency>
+            <groupId>org.metamechanists</groupId>
+            <artifactId>InfinityExpansion</artifactId>
+            <version>3</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
