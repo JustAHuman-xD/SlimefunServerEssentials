@@ -8,6 +8,7 @@ import me.justahuman.slimefun_server_essentials.channels.AddonChannel;
 import me.justahuman.slimefun_server_essentials.channels.BlockChannel;
 import me.justahuman.slimefun_server_essentials.features.CommandManager;
 import me.justahuman.slimefun_server_essentials.listeners.RegistryFinalizedListener;
+import me.justahuman.slimefun_server_essentials.recipe.compat.PluginHook;
 import me.justahuman.slimefun_server_essentials.util.Utils;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -29,6 +30,7 @@ public final class SlimefunServerEssentials extends JavaPlugin {
 
         new Metrics(instance, 18206);
 
+        PluginHook.init();
         getServer().getPluginManager().registerEvents(new RegistryFinalizedListener(), this);
 
         final PaperCommandManager paperCommandManager = new PaperCommandManager(this);

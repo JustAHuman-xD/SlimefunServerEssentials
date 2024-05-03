@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Optional;
 
 @SuppressWarnings("unused")
-@CommandAlias("slimefun_server_essentials")
+@CommandAlias("slimefun_server_essentials|sse")
 public class CommandManager extends BaseCommand {
     private static final Gson GSON = new Gson().newBuilder().create();
     private static final String PATH = "plugins/SlimefunServerEssentials/exported/";

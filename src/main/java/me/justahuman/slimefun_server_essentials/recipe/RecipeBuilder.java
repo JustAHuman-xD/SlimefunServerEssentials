@@ -30,19 +30,19 @@ public class RecipeBuilder {
     }
     
     public RecipeBuilder inputs(List<ItemStack> inputs) {
-        return inputs(JsonUtils.processList(this.complex, inputs));
+        return inputs(JsonUtils.process(this.complex, inputs));
     }
     
     public RecipeBuilder inputs(ItemStack[] inputs) {
-        return inputs(JsonUtils.processArray(this.complex, inputs));
+        return inputs(JsonUtils.process(this.complex, inputs));
     }
 
     public RecipeBuilder input(ItemStack itemStack) {
-        return input(itemStack, 1);
+        return input(itemStack, true);
     }
 
-    public RecipeBuilder input(ItemStack itemStack, float chance) {
-        return input(JsonUtils.process(this.complex, itemStack, chance));
+    public RecipeBuilder input(ItemStack itemStack, boolean consumed) {
+        return input(JsonUtils.process(this.complex, itemStack) + (consumed ? "" : "*"));
     }
 
     public RecipeBuilder input(String input) {
@@ -56,11 +56,11 @@ public class RecipeBuilder {
     }
     
     public RecipeBuilder outputs(List<ItemStack> outputs) {
-        return outputs(JsonUtils.processList(this.complex, outputs));
+        return outputs(JsonUtils.process(this.complex, outputs));
     }
     
     public RecipeBuilder outputs(ItemStack[] outputs) {
-        return outputs(JsonUtils.processArray(this.complex, outputs));
+        return outputs(JsonUtils.process(this.complex, outputs));
     }
     
     private RecipeBuilder outputs(JsonArray outputs) {
@@ -88,30 +88,21 @@ public class RecipeBuilder {
     
     public JsonObject build() {
         final JsonObject recipe = new JsonObject();
-        if (this.time != null) {
+        if (this.time != null && time > 0) {
             recipe.addProperty("time", this.time);
         }
 
-        if (this.energy != null) {
+        if (this.energy != null && energy != 0) {
             recipe.addProperty("energy", this.energy);
         }
 
-        if (!this.complex.isEmpty()) {
-            recipe.add("complex", this.complex);
-        }
-        
-        if (!this.inputs.isEmpty()) {
-            recipe.add("inputs", this.inputs);
-        }
-    
-        if (!this.outputs.isEmpty()) {
-            recipe.add("outputs", this.outputs);
-        }
-        
-        if (!this.labels.isEmpty()) {
-            recipe.add("labels", this.labels);
-        }
+        JsonUtils.addArray(recipe, "complex", this.complex);
+        JsonUtils.addArray(recipe, "inputs", this.inputs);
+        JsonUtils.addArray(recipe, "outputs", this.outputs);
+        JsonUtils.addArray(recipe, "labels", this.labels);
         
         return recipe;
     }
+
+
 }

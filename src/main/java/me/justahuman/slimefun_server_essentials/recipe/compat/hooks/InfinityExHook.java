@@ -2,11 +2,11 @@ package me.justahuman.slimefun_server_essentials.recipe.compat.hooks;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.github.mooy1.infinityexpansion.items.abstracts.AbstractEnergyCrafter;
 import io.github.mooy1.infinityexpansion.items.blocks.StrainerBase;
 import io.github.mooy1.infinityexpansion.items.generators.EnergyGenerator;
 import io.github.mooy1.infinityexpansion.items.generators.GenerationType;
 import io.github.mooy1.infinityexpansion.items.generators.InfinityReactor;
+import io.github.mooy1.infinityexpansion.items.machines.GearTransformer;
 import io.github.mooy1.infinityexpansion.items.machines.GeoQuarry;
 import io.github.mooy1.infinityexpansion.items.machines.GrowingMachine;
 import io.github.mooy1.infinityexpansion.items.machines.MaterialGenerator;
@@ -16,8 +16,14 @@ import io.github.mooy1.infinityexpansion.items.machines.StoneworksFactory;
 import io.github.mooy1.infinityexpansion.items.machines.VoidHarvester;
 import io.github.mooy1.infinityexpansion.items.materials.Materials;
 import io.github.mooy1.infinityexpansion.items.materials.Strainer;
+import io.github.mooy1.infinityexpansion.items.mobdata.MobDataCard;
+import io.github.mooy1.infinityexpansion.items.mobdata.MobDataTier;
 import io.github.mooy1.infinityexpansion.items.mobdata.MobSimulationChamber;
+import io.github.mooy1.infinityexpansion.items.quarries.DimensionOscillator;
+import io.github.mooy1.infinityexpansion.items.quarries.Oscillator;
 import io.github.mooy1.infinityexpansion.items.quarries.Quarry;
+import io.github.mooy1.infinityexpansion.items.quarries.QuarryPool;
+import io.github.mooy1.infinitylib.machines.AbstractMachineBlock;
 import io.github.thebusybiscuit.slimefun4.api.geo.GEOResource;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
@@ -38,6 +44,9 @@ import org.bukkit.block.Biome;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,39 +68,43 @@ public class InfinityExHook extends PluginHook {
     @Override
     public List<String> getSpecialCases() {
         return List.of("INFINITY_REACTOR", "GEO_QUARRY", "STRAINER_BASE", "RESOURCE_SYNTHESIZER", "SINGULARITY_CONSTRUCTOR",
-                "STONE_WORKS_FACTORY", "VOID_HARVESTER", "MOB_SIMULATION_CHAMBER");
+                "STONE_WORKS_FACTORY", "VOID_HARVESTER", "MOB_SIMULATION_CHAMBER", "GEAR_TRANSFORMER");
     }
 
     @Override
     public boolean handles(SlimefunItem slimefunItem) {
         return slimefunItem instanceof EnergyGenerator
-                || slimefunItem instanceof AbstractEnergyCrafter
                 || slimefunItem instanceof GrowingMachine
                 || slimefunItem instanceof MaterialGenerator
-                || slimefunItem instanceof Quarry;
+                || slimefunItem instanceof Quarry
+                || slimefunItem instanceof MobDataCard
+                || slimefunItem instanceof Oscillator;
     }
 
     @Override
     public void handle(JsonObject categoryObject, JsonArray recipesArray, SlimefunItem slimefunItem) {
         int energy = 0;
+        if (slimefunItem instanceof AbstractMachineBlock machineBlock) {
+            energy = ReflectionUtils.getField(machineBlock, "energyPerTick", 0);
+        }
+
         if (slimefunItem instanceof InfinityReactor reactor) {
             recipesArray.add(new RecipeBuilder().input(INFINITY_INGOT_USAGE).input(VOID_INGOT_USAGE).build());
             energy = ReflectionUtils.getField(reactor, "gen", 0);
         } else if (slimefunItem instanceof GeoQuarry quarry) {
-            final int time = ReflectionUtils.getField(quarry, "ticksPerOuptut", 0);
+            final int time = ReflectionUtils.getField(quarry, "ticksPerOutput", 0);
             final var recipes = fillGeoQuarryRecipes(quarry);
             for (var entry : recipes.entrySet()) {
-                final World.Environment environment = entry.getKey().getSecondValue();
+                final World.Environment dimension = entry.getKey().getSecondValue();
                 final Biome biome = entry.getKey().getFirstValue();
                 for (Map.Entry<ItemStack, Float> output : entry.getValue().toMap().entrySet()) {
                     add(recipesArray, new RecipeBuilder()
-                            .label(RecipeExporter.getLabelName(environment))
+                            .label(RecipeExporter.getLabelName(dimension))
                             .label(RecipeExporter.getLabelName(biome))
                             .output(output.getKey(), output.getValue())
                             .sfTicks(time));
                 }
             }
-            energy = ReflectionUtils.getField(quarry, "energyPerTick", 0);
         } else if (slimefunItem instanceof StrainerBase base) {
             final int time = ReflectionUtils.getField(base, "time", 0);
             final ItemStack potatoFish = new CustomItemStack(Material.POTATO, "&7:&6Potatofish&7:", "&eLucky");
@@ -122,7 +135,6 @@ public class InfinityExHook extends PluginHook {
                         .output(recipes[i + 2])
                         .sfTicks(1));
             }
-            energy = ReflectionUtils.getField(synthesizer, "energyPerTick", 0);
         } else if (slimefunItem instanceof SingularityConstructor constructor) {
             int sideLength = 0;
             final int speed = ReflectionUtils.getField(constructor, "speed", 1);
@@ -134,7 +146,7 @@ public class InfinityExHook extends PluginHook {
                 final int stacks = amount / input.getMaxStackSize();
                 final int extra = amount - stacks * input.getMaxStackSize();
                 final int stackCount = stacks + (extra > 0 ? 1 : 0);
-                final RecipeBuilder recipeBuilder = new RecipeBuilder().sfTicks(amount / speed).output(output);
+                final RecipeBuilder recipeBuilder = new RecipeBuilder().sfTicks(amount).output(output);
 
                 for (int i = 0; i < stacks; i++) {
                     recipeBuilder.input(new CustomItemStack(input, input.getMaxStackSize()));
@@ -147,8 +159,9 @@ public class InfinityExHook extends PluginHook {
                 add(recipesArray, recipeBuilder);
                 sideLength = Math.max(sideLength, (int) Math.ceil(Math.sqrt(stackCount)));
             }
-            energy = ReflectionUtils.getField(constructor, "energyPerTick", 0);
-        } else if (slimefunItem instanceof StoneworksFactory factory) {
+            categoryObject.addProperty("type", "grid" + sideLength);
+            categoryObject.addProperty("speed", speed);
+        } else if (slimefunItem instanceof StoneworksFactory) {
             final Class<?>[] nestClasses = StoneworksFactory.class.getNestMembers();
             if (nestClasses.length == 0) {
                 return;
@@ -173,11 +186,31 @@ public class InfinityExHook extends PluginHook {
                     }
                 }
             }
-            energy = ReflectionUtils.getField(factory, "energyPerTick", 0);
         } else if (slimefunItem instanceof VoidHarvester harvester) {
-
+            add(recipesArray, new RecipeBuilder()
+                    .output(Materials.VOID_BIT)
+                    .sfTicks(1024));
+            categoryObject.addProperty("speed", ReflectionUtils.getField(harvester, "speed", 1));
         } else if (slimefunItem instanceof MobSimulationChamber chamber) {
+            final int time = ReflectionUtils.getField(chamber, "interval", 0);
+            final int baseEnergy = ReflectionUtils.getField(chamber, "energy", 0);
+            for (SlimefunItem item : Slimefun.getRegistry().getEnabledSlimefunItems()) {
+                if (item instanceof MobDataCard card) {
+                    final RandomizedSet<ItemStack> drops = ReflectionUtils.getField(card, "drops", new RandomizedSet<>());
+                    final MobDataTier tier = ReflectionUtils.getField(card, "tier", MobDataTier.PASSIVE);
+                    final int tierEnergy = ReflectionUtils.getField(tier, "energy", 0);
+                    final int xp = ReflectionUtils.getField(tier, "xp", 0);
+                    final RecipeBuilder builder = new RecipeBuilder()
+                            .input(card.getItem(), false)
+                            .energy(baseEnergy + tierEnergy)
+                            .sfTicks(time);
 
+                    for (Map.Entry<ItemStack, Float> entry : drops.toMap().entrySet()) {
+                        builder.output(entry.getKey(), entry.getValue()).output("$:" + xp);
+                    }
+                    add(recipesArray, builder);
+                }
+            }
         } else if (slimefunItem instanceof EnergyGenerator generator) {
             energy = ReflectionUtils.getField(generator, "generation", 0);
             switch(ReflectionUtils.getField(generator, "type", GenerationType.SOLAR)) {
@@ -194,18 +227,116 @@ public class InfinityExHook extends PluginHook {
                 case HYDROELECTRIC -> add(recipesArray, new RecipeBuilder().sfTicks(1).label("waterlogged"));
                 case INFINITY -> add(recipesArray, new RecipeBuilder().sfTicks(1));
             }
-        } else if (slimefunItem instanceof AbstractEnergyCrafter energyCrafter) {
+        } else if (slimefunItem instanceof GearTransformer transformer) {
+            final String[] toolTypes = ReflectionUtils.getField(transformer, "TOOL_TYPES", new String[0]);
+            final String[] armorTypes = ReflectionUtils.getField(transformer, "ARMOR_TYPES", new String[0]);
+            final String[] toolMaterials = ReflectionUtils.getField(transformer, "TOOL_MATERIALS", new String[0]);
+            final String[] armorMaterials = ReflectionUtils.getField(transformer, "ARMOR_MATERIALS", new String[0]);
+            final ItemStack[] toolRecipe = ReflectionUtils.getField(transformer, "TOOL_RECIPE", new ItemStack[0]);
+            final ItemStack[] armorRecipe = ReflectionUtils.getField(transformer, "ARMOR_RECIPE", new ItemStack[0]);
 
-        } else if (slimefunItem instanceof GrowingMachine growingMachine) {
+            addUpgradeRecipes(recipesArray, toolTypes, toolMaterials, toolRecipe);
+            addUpgradeRecipes(recipesArray, armorTypes, armorMaterials, armorRecipe);
 
-        } else if (slimefunItem instanceof MaterialGenerator materialGenerator) {
-
+            energy = ReflectionUtils.getField(transformer, "energy", 0);
+        } else if (slimefunItem instanceof GrowingMachine machine) {
+            final EnumMap<Material, ItemStack[]> recipes = ReflectionUtils.getField(machine, "recipes", new EnumMap<>(Material.class));
+            final int time = ReflectionUtils.getField(machine, "ticksPerOutput", 0);
+            for (Map.Entry<Material, ItemStack[]> recipe : recipes.entrySet()) {
+                add(recipesArray, new RecipeBuilder()
+                        .input(new ItemStack(recipe.getKey()), false)
+                        .outputs(recipe.getValue())
+                        .sfTicks(time));
+            }
+        } else if (slimefunItem instanceof MaterialGenerator generator) {
+            final int amount = ReflectionUtils.getField(generator, "speed", 1);
+            final Material material = ReflectionUtils.getField(generator, "material", null);
+            if (material != null) {
+                add(recipesArray, new RecipeBuilder().output(new ItemStack(material, amount)).sfTicks(1));
+            }
         } else if (slimefunItem instanceof Quarry quarry) {
+            final int speed = quarry.speed();
+            final int chance = quarry.chance();
+            final int interval = ReflectionUtils.getField(quarry, "INTERVAL", 10);
+            final Map<World.Environment, QuarryPool> pools = quarry.getPools();
+            for (World.Environment dimension : pools.keySet()) {
+                final QuarryPool pool = pools.get(dimension);
+                final int baseChance = pool.chanceOverride(chance);
+                add(recipesArray, new RecipeBuilder()
+                        .output(new ItemStack(pool.commonDrop(), speed), (baseChance - 1F) / baseChance)
+                        .label(RecipeExporter.getLabelName(dimension))
+                        .sfTicks(interval));
 
+                final var entries = new ArrayList<>(pool.drops().toMap().entrySet());
+                entries.sort(Comparator.comparingDouble(Map.Entry::getValue));
+                Collections.reverse(entries);
+                for (Map.Entry<Material, Float> drop : entries) {
+                    add(recipesArray, new RecipeBuilder()
+                            .output(new ItemStack(drop.getKey(), speed), (1F / baseChance) * drop.getValue())
+                            .label(RecipeExporter.getLabelName(dimension))
+                            .sfTicks(interval));
+                }
+
+                for (Oscillator oscillator : Oscillator.getOscillators()) {
+                    if (oscillator instanceof DimensionOscillator) {
+                        continue;
+                    }
+
+                    add(recipesArray, new RecipeBuilder()
+                            .input(oscillator.getItem(), false)
+                            .output(new ItemStack(oscillator.getItem().getType(), speed),
+                                    (float) (1.0 / (double) quarry.chance() * oscillator.chance))
+                            .label(RecipeExporter.getLabelName(dimension))
+                            .sfTicks(interval));
+                }
+            }
+
+            for (Oscillator oscillator : Oscillator.getOscillators()) {
+                if (!(oscillator instanceof DimensionOscillator dimensionOscillator)) {
+                    continue;
+                }
+
+                final float baseChance = (float) ((1F / quarry.chance()) * dimensionOscillator.chance);
+                final World.Environment dimension = ReflectionUtils.getField(dimensionOscillator, "dimension", World.Environment.NORMAL);
+                final QuarryPool pool = quarry.getPools().get(dimension);
+                ArrayList<Map.Entry<Material, Float>> entries = new ArrayList<>(pool.drops().toMap().entrySet());
+                entries.sort(Comparator.comparingDouble(Map.Entry::getValue));
+                Collections.reverse(entries);
+
+                add(recipesArray, new RecipeBuilder()
+                        .input(oscillator.getItem(), false)
+                        .output(new ItemStack(pool.commonDrop(), quarry.speed()), baseChance * (1F/10F))
+                        .sfTicks(interval));
+                for (Map.Entry<Material, Float> drop : entries) {
+                    add(recipesArray, new RecipeBuilder()
+                            .input(oscillator.getItem(), false)
+                            .output(new ItemStack(drop.getKey(), quarry.speed()),
+                                    baseChance * (9F/10F) * drop.getValue())
+                            .sfTicks(interval));
+                }
+            }
         }
 
         if (energy != 0) {
             categoryObject.addProperty("energy", energy);
+        }
+    }
+
+    private void addUpgradeRecipes(JsonArray recipesArray, String[] types, String[] materials, ItemStack[] recipes) {
+        for (String armorType : types) {
+            for (int i = 0; i < materials.length; i++) {
+                Material armorInput = Material.getMaterial(materials[i] + armorType);
+                Material armorOutput = Material.getMaterial(materials[Math.min(materials.length - 1, i + 1)] + armorType);
+                if (armorInput == null || armorOutput == null || armorInput == armorOutput) {
+                    continue;
+                }
+
+                ItemStack input = recipes[i];
+                add(recipesArray, new RecipeBuilder()
+                        .input(input)
+                        .input(new ItemStack(armorInput))
+                        .output(new ItemStack(armorOutput)));
+            }
         }
     }
 

@@ -55,7 +55,7 @@ public class RecipeExporter {
     }
 
     public static JsonObject optimizeCategory(JsonObject categories, JsonObject category1) {
-        final JsonArray recipes1 = JsonUtils.getArrayOrDefault(category1, "recipes", null);
+        final JsonArray recipes1 = JsonUtils.getArray(category1, "recipes", null);
         if (recipes1 == null) {
             return null;
         }
@@ -66,7 +66,7 @@ public class RecipeExporter {
                 continue;
             }
 
-            final JsonArray recipes2 = JsonUtils.getArrayOrDefault(category2, "recipes", null);
+            final JsonArray recipes2 = JsonUtils.getArray(category2, "recipes", null);
             if (recipes2 == null) {
                 continue;
             }
@@ -81,23 +81,23 @@ public class RecipeExporter {
                     continue;
                 }
 
-                if (!Objects.equals(JsonUtils.getArrayOrDefault(recipe1, "inputs", null), JsonUtils.getArrayOrDefault(recipe2, "inputs", null))) {
+                if (!Objects.equals(JsonUtils.getArray(recipe1, "inputs", null), JsonUtils.getArray(recipe2, "inputs", null))) {
                     continue;
                 }
 
-                if (!Objects.equals(JsonUtils.getArrayOrDefault(recipe1, "outputs", null), JsonUtils.getArrayOrDefault(recipe2, "outputs", null))) {
+                if (!Objects.equals(JsonUtils.getArray(recipe1, "outputs", null), JsonUtils.getArray(recipe2, "outputs", null))) {
                     continue;
                 }
 
-                if (!Objects.equals(JsonUtils.getArrayOrDefault(recipe1, "labels", null), JsonUtils.getArrayOrDefault(recipe2, "labels", null))) {
+                if (!Objects.equals(JsonUtils.getArray(recipe1, "labels", null), JsonUtils.getArray(recipe2, "labels", null))) {
                     continue;
                 }
 
-                if (!Objects.equals(JsonUtils.getIntegerOrDefault(recipe1, "energy", null), JsonUtils.getIntegerOrDefault(recipe2, "energy", null))) {
+                if (!Objects.equals(JsonUtils.getInt(recipe1, "energy", null), JsonUtils.getInt(recipe2, "energy", null))) {
                     continue;
                 }
 
-                if (!Objects.equals(JsonUtils.getIntegerOrDefault(recipe1, "time", 0) / 10, (JsonUtils.getIntegerOrDefault(recipe2, "time", 0) / 10) / JsonUtils.getIntegerOrDefault(category1, "speed", 1))) {
+                if (!Objects.equals(JsonUtils.getInt(recipe1, "time", 0) / 10, (JsonUtils.getInt(recipe2, "time", 0) / 10) / JsonUtils.getInt(category1, "speed", 1))) {
                     continue;
                 }
 
@@ -116,19 +116,19 @@ public class RecipeExporter {
         return null;
     }
 
-    public static void exportParentCategory(SlimefunItem slimefunItem, JsonObject categoryObject) {
-        if (!categoryObject.has("item")) {
-            categoryObject.add("item", JsonUtils.serializeItem(slimefunItem.getRecipeType().toItem()));
+    public static void exportParentCategory(SlimefunItem slimefunItem, JsonObject category) {
+        if (!category.has("item")) {
+            category.add("item", JsonUtils.serializeItem(slimefunItem.getRecipeType().toItem()));
         }
 
-        final JsonArray recipesArray = JsonUtils.getArrayOrDefault(categoryObject, "recipes", new JsonArray());
+        final JsonArray recipesArray = JsonUtils.getArray(category, "recipes", new JsonArray());
         addRecipeWithOptimize(recipesArray, new RecipeBuilder().inputs(slimefunItem.getRecipe()).output(slimefunItem.getRecipeOutput()));
-        categoryObject.add("recipes", recipesArray);
+        category.add("recipes", recipesArray);
     }
 
     public static JsonObject getCategory(SlimefunItem slimefunItem) {
         final JsonObject categoryObject = new JsonObject();
-        final JsonArray recipesArray = new JsonArray();
+        final JsonArray recipes = new JsonArray();
 
         PluginHook matchedHook = null;
         for (PluginHook hook : Hooks.HOOKS) {
@@ -139,11 +139,11 @@ public class RecipeExporter {
         }
 
         if (matchedHook != null) {
-            matchedHook.handle(categoryObject, recipesArray, slimefunItem);
+            matchedHook.handle(categoryObject, recipes, slimefunItem);
         } else if (slimefunItem instanceof CraftingBlock || slimefunItem instanceof MachineBlock) {
             final InfinityLibBlock wrappedBlock = InfinityLibBlock.wrap(slimefunItem);
             for (InfinityLibBlock.Recipe recipe : wrappedBlock.recipes()) {
-                addRecipeWithOptimize(recipesArray, new RecipeBuilder()
+                addRecipeWithOptimize(recipes, new RecipeBuilder()
                         .inputs(recipe.inputs())
                         .outputs(recipe.outputs())
                         .sfTicks(recipe.time()));
@@ -157,98 +157,92 @@ public class RecipeExporter {
             if (type != null) {
                 categoryObject.addProperty("type", type);
             }
-        } else if (slimefunItem instanceof MultiBlockMachine multiBlockMachine) {
-            final List<ItemStack[]> recipes = multiBlockMachine.getRecipes();
-            for (ItemStack[] inputs : recipes) {
+        } else if (slimefunItem instanceof MultiBlockMachine multiBlock) {
+            final List<ItemStack[]> multiBlockRecipes = multiBlock.getRecipes();
+            for (ItemStack[] inputs : multiBlockRecipes) {
                 // Slimefun saves it as Input, Output, Input, Output, So we skip on the Outputs
-                final int index = recipes.indexOf(inputs);
-                if (index % 2 != 0 || recipes.size() - 1 < index + 1) {
+                final int index = multiBlockRecipes.indexOf(inputs);
+                if (index % 2 != 0 || multiBlockRecipes.size() - 1 < index + 1) {
                     continue;
                 }
-
-                addRecipeWithOptimize(recipesArray, new RecipeBuilder().inputs(inputs).outputs(recipes.get(index + 1)));
+                addRecipeWithOptimize(recipes, new RecipeBuilder().inputs(inputs).outputs(multiBlockRecipes.get(index + 1)));
             }
             categoryObject.addProperty("type", "grid3");
-        } else if (slimefunItem instanceof AncientAltar ancientAltar) {
-            for (AltarRecipe altarRecipe : ancientAltar.getRecipes()) {
+        } else if (slimefunItem instanceof AncientAltar altar) {
+            for (AltarRecipe altarRecipe : altar.getRecipes()) {
                 final List<ItemStack> i = altarRecipe.getInput();
                 // Slimefun Ancient Altar Recipes are put in this Strange Order, don't ask me Why
                 final ItemStack[] inputs = new ItemStack[] { i.get(0), i.get(1), i.get(2), i.get(7), altarRecipe.getCatalyst(), i.get(3), i.get(6), i.get(5), i.get(4) };
-                final ItemStack[] outputs = new ItemStack[] { altarRecipe.getOutput() };
                 // An Ancient Altar Task goes through 36 "stages" before completion, the delay between each is 8 ticks.
-                addRecipeWithOptimize(recipesArray, new RecipeBuilder().ticks(36 * 8).inputs(inputs).outputs(outputs));
+                addRecipeWithOptimize(recipes, new RecipeBuilder().ticks(36 * 8).inputs(inputs).output(altarRecipe.getOutput()));
             }
-
             categoryObject.addProperty("type", "ancient_altar");
-        } else if (slimefunItem instanceof AbstractEnergyProvider abstractEnergyProvider) {
-            final Set<MachineFuel> abstractEnergyProviderFuelTypes = abstractEnergyProvider.getFuelTypes();
-            for (MachineFuel machineFuel : abstractEnergyProviderFuelTypes) {
+        } else if (slimefunItem instanceof AbstractEnergyProvider provider) {
+            final Set<MachineFuel> fuelTypes = provider.getFuelTypes();
+            for (MachineFuel machineFuel : fuelTypes) {
                 final List<ItemStack> inputs = new ArrayList<>(List.of(machineFuel.getInput()));
                 if (slimefunItem instanceof Reactor reactor && reactor.getCoolant() != null) {
                     for (int count = (int) Math.ceil(machineFuel.getTicks() / 50D); count != 0; count -= Math.min(count, 64)) {
                         inputs.add(new CustomItemStack(reactor.getCoolant(), Math.min(count, 64)));
                     }
                 }
-
-                addRecipeWithOptimize(recipesArray, new RecipeBuilder().sfTicks(machineFuel.getTicks()).inputs(inputs).output(machineFuel.getOutput()));
+                addRecipeWithOptimize(recipes, new RecipeBuilder().sfTicks(machineFuel.getTicks()).inputs(inputs).output(machineFuel.getOutput()));
             }
-
-            categoryObject.addProperty("energy", abstractEnergyProvider.getEnergyProduction());
 
             if (slimefunItem instanceof Reactor) {
                 categoryObject.addProperty("type", "reactor");
             }
-        } else if (slimefunItem instanceof SolarGenerator solarGenerator) {
-            addRecipeWithOptimize(recipesArray, new RecipeBuilder().sfTicks(1).energy(solarGenerator.getDayEnergy()).label("day"));
-            addRecipeWithOptimize(recipesArray, new RecipeBuilder().sfTicks(1).energy(solarGenerator.getNightEnergy()).label("night"));
-        } else if (slimefunItem instanceof AContainer aContainer) {
-            for (MachineRecipe machineRecipe : aContainer.getMachineRecipes()) {
+            categoryObject.addProperty("energy", provider.getEnergyProduction());
+        } else if (slimefunItem instanceof SolarGenerator generator) {
+            addRecipeWithOptimize(recipes, new RecipeBuilder().sfTicks(1).energy(generator.getDayEnergy()).label("day"));
+            addRecipeWithOptimize(recipes, new RecipeBuilder().sfTicks(1).energy(generator.getNightEnergy()).label("night"));
+        } else if (slimefunItem instanceof AContainer container) {
+            for (MachineRecipe machineRecipe : container.getMachineRecipes()) {
                 final ItemStack[] inputs = machineRecipe.getInput();
                 final ItemStack[] outputs = machineRecipe.getOutput();
-                addRecipeWithOptimize(recipesArray, new RecipeBuilder().sfTicks(machineRecipe.getTicks()).inputs(inputs).outputs(outputs));
+                addRecipeWithOptimize(recipes, new RecipeBuilder().sfTicks(machineRecipe.getTicks()).inputs(inputs).outputs(outputs));
             }
 
-            categoryObject.addProperty("speed", aContainer.getSpeed());
-            categoryObject.addProperty("energy", -aContainer.getEnergyConsumption());
+            categoryObject.addProperty("speed", container.getSpeed());
+            categoryObject.addProperty("energy", -container.getEnergyConsumption());
 
             if (slimefunItem instanceof ElectricSmeltery) {
                 categoryObject.addProperty("type", "smeltery");
             }
-        } else if (slimefunItem instanceof RecipeDisplayItem recipeDisplayItem) {
-            exportDisplayRecipes(recipeDisplayItem, recipesArray);
+        } else if (slimefunItem instanceof RecipeDisplayItem item) {
+            exportDisplayRecipes(item, recipes);
         }
 
-        if (!recipesArray.isEmpty()) {
-            JsonUtils.sortJsonArray(recipesArray);
-            categoryObject.add("recipes", recipesArray);
+        if (!recipes.isEmpty()) {
+            JsonUtils.sortJsonArray(recipes);
+            categoryObject.add("recipes", recipes.size() == 1
+                    ? recipes.get(0)
+                    : recipes);
         }
 
         return categoryObject;
     }
 
-    private static void exportDisplayRecipes(RecipeDisplayItem recipeDisplayItem, JsonArray recipesArray) {
-        final List<ItemStack> recipes = recipeDisplayItem.getDisplayRecipes();
-        for (ItemStack input : recipes) {
+    private static void exportDisplayRecipes(RecipeDisplayItem item, JsonArray recipes) {
+        final List<ItemStack> displayRecipes = item.getDisplayRecipes();
+        for (ItemStack input : displayRecipes) {
             // Slimefun saves it as Input, Output, Input, Output, So we skip on the Outputs
-            final int index = recipes.indexOf(input);
-            if (index % 2 != 0 || recipes.size() - 1 < index + 1) {
+            final int index = displayRecipes.indexOf(input);
+            if (index % 2 != 0 || displayRecipes.size() - 1 < index + 1) {
                 continue;
             }
-
-            final ItemStack output = recipes.get(index + 1);
-
-            addRecipeWithOptimize(recipesArray, new RecipeBuilder().input(input).output(output));
+            addRecipeWithOptimize(recipes, new RecipeBuilder().input(input).output(displayRecipes.get(index + 1)));
         }
     }
 
-    public static void addRecipeWithOptimize(JsonArray recipesArray, RecipeBuilder builder) {
+    public static void addRecipeWithOptimize(JsonArray recipes, RecipeBuilder builder) {
         final JsonObject recipeObject = builder.build();
         JsonUtils.removeWhitespace(recipeObject);
-        final Pair<Integer, JsonObject> optimizedRecipe = optimizeRecipe(recipesArray.deepCopy(), recipeObject.deepCopy());
+        final Pair<Integer, JsonObject> optimizedRecipe = optimizeRecipe(recipes, recipeObject);
         if (optimizedRecipe != null) {
-            recipesArray.set(optimizedRecipe.getFirstValue(), optimizedRecipe.getSecondValue());
+            recipes.set(optimizedRecipe.getFirstValue(), optimizedRecipe.getSecondValue());
         } else {
-            recipesArray.add(recipeObject);
+            recipes.add(recipeObject);
         }
     }
 
@@ -259,11 +253,12 @@ public class RecipeExporter {
      * @return {@link Pair} with the {@link Pair#getFirstValue()} being the index and the {@link Pair#getSecondValue()} being the optimized Recipe {@link JsonObject}
      */
     public static Pair<Integer, JsonObject> optimizeRecipe(JsonArray recipes, JsonObject recipe1) {
-        final JsonArray inputs1 = JsonUtils.getArrayOrDefault(recipe1, "inputs", new JsonArray());
-        final JsonArray outputs1 = JsonUtils.getArrayOrDefault(recipe1, "outputs", new JsonArray());
-        final JsonArray labels1 = JsonUtils.getArrayOrDefault(recipe1, "labels", new JsonArray());
-        final Integer time1 = JsonUtils.getIntegerOrDefault(recipe1, "time", null);
-        final Integer energy1 = JsonUtils.getIntegerOrDefault(recipe1, "energy", null);
+        final JsonArray complex1 = JsonUtils.getArray(recipe1, "complex", new JsonArray());
+        final JsonArray inputs1 = JsonUtils.getArray(recipe1, "inputs", new JsonArray());
+        final JsonArray outputs1 = JsonUtils.getArray(recipe1, "outputs", new JsonArray());
+        final JsonArray labels1 = JsonUtils.getArray(recipe1, "labels", new JsonArray());
+        final Integer time1 = JsonUtils.getInt(recipe1, "time", null);
+        final Integer energy1 = JsonUtils.getInt(recipe1, "energy", null);
 
         for (int index = 0; index < recipes.size(); index++) {
             // This should always evaluate to false this is just an instanceof cast
@@ -271,17 +266,18 @@ public class RecipeExporter {
                 continue;
             }
 
-            final JsonArray inputs2 = JsonUtils.getArrayOrDefault(recipe2, "inputs", new JsonArray());
-            final JsonArray outputs2 = JsonUtils.getArrayOrDefault(recipe2, "outputs", new JsonArray());
-            final JsonArray labels2 = JsonUtils.getArrayOrDefault(recipe2, "labels", new JsonArray());
-            final Integer time2 = JsonUtils.getIntegerOrDefault(recipe2, "time", null);
-            final Integer energy2 = JsonUtils.getIntegerOrDefault(recipe1, "energy", null);
+            final JsonArray complex2 = JsonUtils.getArray(recipe2, "complex", new JsonArray());
+            final JsonArray inputs2 = JsonUtils.getArray(recipe2, "inputs", new JsonArray());
+            final JsonArray outputs2 = JsonUtils.getArray(recipe2, "outputs", new JsonArray());
+            final JsonArray labels2 = JsonUtils.getArray(recipe2, "labels", new JsonArray());
+            final Integer time2 = JsonUtils.getInt(recipe2, "time", null);
+            final Integer energy2 = JsonUtils.getInt(recipe1, "energy", null);
 
             if (!Objects.equals(time1, time2) || !Objects.equals(energy1, energy2)) {
                 continue;
             }
 
-            boolean canMerge = outputs1.equals(outputs2) && labels1.equals(labels2);
+            boolean canMerge = complex1.equals(complex2) && labels1.equals(labels2) && outputs1.equals(outputs2);
 
             if (!canMerge) {
                 continue;
@@ -312,8 +308,9 @@ public class RecipeExporter {
             // At this point we have confirmed that these 2 recipes can be merged, so let's do that.
             final JsonObject recipe3 = new JsonObject();
             final JsonArray inputs3 = new JsonArray();
-            final JsonArray outputs3 = outputs1.deepCopy();
+            final JsonArray complex3 = complex1.deepCopy();
             final JsonArray labels3 = labels1.deepCopy();
+            final JsonArray outputs3 = outputs1.deepCopy();
 
             for (int inputIndex = 0; inputIndex < inputs1.size(); inputIndex++) {
                 final JsonElement inputElement1 = inputs1.get(inputIndex);
@@ -333,18 +330,10 @@ public class RecipeExporter {
                 recipe3.addProperty("time", time1);
             }
 
-            if (!inputs3.isEmpty()) {
-                recipe3.add("inputs", inputs3);
-            }
-
-            if (!outputs3.isEmpty()) {
-                recipe3.add("outputs", outputs3);
-            }
-
-            if (!labels3.isEmpty()) {
-                recipe3.add("labels", labels3);
-            }
-
+            JsonUtils.addArray(recipe3, "complex", complex3);
+            JsonUtils.addArray(recipe3, "inputs", inputs3);
+            JsonUtils.addArray(recipe3, "outputs", outputs3);
+            JsonUtils.addArray(recipe3, "labels", labels3);
             return new Pair<>(index, recipe3);
         }
         return null;

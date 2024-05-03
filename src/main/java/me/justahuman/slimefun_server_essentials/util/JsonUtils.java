@@ -16,32 +16,51 @@ import io.github.thebusybiscuit.slimefun4.implementation.items.VanillaItem;
 import me.justahuman.slimefun_server_essentials.recipe.compat.misc.ComplexItem;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 
 import java.util.List;
+import java.util.Optional;
 
 public class JsonUtils {
-    public static JsonObject getObjectOrDefault(JsonObject jsonObject, String key, JsonObject defaultValue) {
-        return jsonObject.get(key) instanceof JsonObject otherObject ? otherObject : defaultValue;
+    public static JsonObject getObjectOrDefault(JsonObject parent, String key, JsonObject def) {
+        return parent.get(key) instanceof JsonObject json ? json : def;
     }
 
-    public static JsonArray getArrayOrDefault(JsonObject jsonObject, String key, JsonArray defaultValue) {
-        return jsonObject.get(key) instanceof JsonArray jsonArray ? jsonArray : defaultValue;
+    public static JsonArray getArray(JsonObject parent, String key, JsonArray def) {
+        final JsonElement element = parent.get(key);
+        if (element instanceof JsonArray array) {
+            return array;
+        } else if (element == null) {
+            return def;
+        }
+
+        final JsonArray array = new JsonArray();
+        array.add(element);
+        return array;
     }
 
-    public static String getStringOrDefault(JsonObject jsonObject, String key, String defaultValue) {
-        return jsonObject.get(key) instanceof JsonPrimitive jsonPrimitive && jsonPrimitive.isString() ? jsonPrimitive.getAsString() : defaultValue;
+    public static String getString(JsonObject parent, String key, String def) {
+        return getPrimitive(parent, key).filter(JsonPrimitive::isString).map(JsonPrimitive::getAsString).orElse(def);
     }
 
-    public static Boolean getBooleanOrDefault(JsonObject jsonObject, String key, Boolean defaultValue) {
-        return jsonObject.get(key) instanceof JsonPrimitive jsonPrimitive && jsonPrimitive.isBoolean() ? jsonPrimitive.getAsBoolean() : defaultValue;
+    public static Boolean getBool(JsonObject parent, String key, Boolean def) {
+        return getPrimitive(parent, key).filter(JsonPrimitive::isBoolean).map(JsonPrimitive::getAsBoolean).orElse(def);
     }
 
-    public static Long getLongOrDefault(JsonObject jsonObject, String key, Long defaultValue) {
-        return jsonObject.get(key) instanceof JsonPrimitive jsonPrimitive && jsonPrimitive.isNumber() ? jsonPrimitive.getAsLong() : defaultValue;
+    public static Long getLong(JsonObject parent, String key, Long def) {
+        return getNumber(parent, key).map(Number::longValue).orElse(def);
     }
 
-    public static Integer getIntegerOrDefault(JsonObject jsonObject, String key, Integer defaultValue) {
-        return jsonObject.get(key) instanceof JsonPrimitive jsonPrimitive && jsonPrimitive.isNumber() ? jsonPrimitive.getAsInt() : defaultValue;
+    public static Integer getInt(JsonObject parent, String key, Integer def) {
+        return getNumber(parent, key).map(Number::intValue).orElse(def);
+    }
+
+    public static Optional<Number> getNumber(JsonObject parent, String key) {
+        return getPrimitive(parent, key).filter(JsonPrimitive::isNumber).map(JsonPrimitive::getAsNumber);
+    }
+
+    public static Optional<JsonPrimitive> getPrimitive(JsonObject parent, String key) {
+        return parent.get(key) instanceof JsonPrimitive primitive ? Optional.of(primitive) : Optional.empty();
     }
 
     public static boolean equalAmount(JsonElement element1, JsonElement element2) {
@@ -51,19 +70,19 @@ public class JsonUtils {
     }
 
     // In Some Special Cases there is no Amount Provided, For Ex, if it is an entity it would be entity:entity_type, or if it is a fluid it would be fluid:fluid_type, in these cases we return 1
-    public static Integer getAmount(JsonElement jsonElement) {
-        if (jsonElement instanceof JsonPrimitive jsonPrimitive && jsonPrimitive.isString() && jsonPrimitive.getAsString().contains(":")) {
-            final String sub = jsonPrimitive.getAsString().substring(jsonPrimitive.getAsString().indexOf(":"));
+    public static Integer getAmount(JsonElement element) {
+        if (element instanceof JsonPrimitive primitive && primitive.isString() && primitive.getAsString().contains(":")) {
+            final String sub = primitive.getAsString().substring(primitive.getAsString().indexOf(":"));
             try {
                 return Integer.parseInt(sub);
             } catch (NumberFormatException ignored) {}
-        } else if (jsonElement instanceof JsonArray jsonArray) {
-            return getAmount(jsonArray.get(0));
+        } else if (element instanceof JsonArray array) {
+            return getAmount(array.get(0));
         }
         return 1;
     }
 
-    public static JsonArray processList(JsonArray complex, List<ItemStack> process) {
+    public static JsonArray process(JsonArray complex, List<ItemStack> process) {
         final JsonArray processed = new JsonArray();
         for (ItemStack itemStack : process) {
             processed.add(process(complex, itemStack));
@@ -71,7 +90,7 @@ public class JsonUtils {
         return processed;
     }
 
-    public static JsonArray processArray(JsonArray complex, ItemStack[] process) {
+    public static JsonArray process(JsonArray complex, ItemStack[] process) {
         final JsonArray processed = new JsonArray();
         for (ItemStack itemStack : process) {
             processed.add(process(complex, itemStack));
@@ -79,30 +98,38 @@ public class JsonUtils {
         return processed;
     }
 
-    public static String process(JsonArray complex, ItemStack process) {
-        return process(complex, process, 1);
+    public static String process(JsonArray complexStacks, ItemStack itemStack) {
+        return process(complexStacks, itemStack, 1);
     }
 
-    public static String process(JsonArray complex, ItemStack process, float chance) {
+    public static String process(JsonArray complexStacks, ItemStack itemStack, float chance) {
+        if (itemStack == null) {
+            return "";
+        }
+
+        boolean complex = false;
         final StringBuilder processed = new StringBuilder();
-        final String slimefunId = Slimefun.getItemDataService().getItemData(process).orElse("");
-        final SlimefunItem slimefunItem = SlimefunItem.getByItem(process);
-        if (!slimefunId.isBlank() && !(slimefunItem instanceof VanillaItem) && !(process instanceof ComplexItem)) {
+        final String slimefunId = Slimefun.getItemDataService().getItemData(itemStack).orElse("");
+        final SlimefunItem slimefunItem = SlimefunItem.getByItem(itemStack);
+        if (!slimefunId.isBlank() && !(slimefunItem instanceof VanillaItem) && !(itemStack instanceof ComplexItem)) {
             processed.append(slimefunId);
-        } else if (process != null) {
-            if (process instanceof ComplexItem || (slimefunItem == null && process.hasItemMeta() && (process.getItemMeta().hasDisplayName() || process.getItemMeta().hasLore()))) {
-                processed.append('?').append(complex.size());
-                complex.add(serializeItem(process));
-            } else {
-                processed.append(process.getType().name().toLowerCase());
-            }
+        } else if (itemStack instanceof ComplexItem || (slimefunItem == null && itemStack.hasItemMeta() && (itemStack.getItemMeta().hasDisplayName() || itemStack.getItemMeta().hasLore()))) {
+            processed.append('?').append(complexStacks.size());
+            complexStacks.add(serializeItem(itemStack));
+            complex = true;
+        } else {
+            processed.append(itemStack.getType().name().toLowerCase());
         }
+        processed.append(':').append(itemStack.getAmount());
 
-        processed.append(':').append(process.getAmount());
-
-        if (chance != 100) {
+        if (chance != 1) {
             processed.append('%').append(chance);
         }
+
+        if (!complex && itemStack.getItemMeta() instanceof Damageable damageable && damageable.hasDamage()) {
+            processed.append('^').append(damageable.getDamage());
+        }
+
         return processed.toString();
     }
 
@@ -110,37 +137,34 @@ public class JsonUtils {
         return serializeItem(slimefunItem.getItem());
     }
 
-    public static void sortJsonArray(JsonArray toSort) {
-        final List<JsonElement> jsonElements = JsonArrayList.of(toSort);
+    public static void sortJsonArray(JsonArray array) {
+        final List<JsonElement> jsonElements = JsonArrayList.of(array);
         jsonElements.sort((e1, e2) -> {
-            if (e1 instanceof JsonObject jsonObject1 && e2 instanceof JsonObject jsonObject2) {
-                final int timeCompare = Integer.compare(getIntegerOrDefault(jsonObject1, "time", 1), getIntegerOrDefault(jsonObject2, "time", 1));
+            if (e1 instanceof JsonObject json1 && e2 instanceof JsonObject json2) {
+                final int timeCompare = Integer.compare(getInt(json1, "time", 1), getInt(json2, "time", 1));
                 if (timeCompare != 0) {
                     return timeCompare;
                 }
-
-                final int inputsCompare = Integer.compare(getArrayOrDefault(jsonObject1, "inputs", new JsonArray()).size(), getArrayOrDefault(jsonObject2, "inputs", new JsonArray()).size());
+                final int inputsCompare = Integer.compare(getArray(json1, "inputs", new JsonArray()).size(), getArray(json2, "inputs", new JsonArray()).size());
                 if (inputsCompare != 0) {
                     return timeCompare;
                 }
-
-                return Integer.compare(getArrayOrDefault(jsonObject1, "outputs", new JsonArray()).size(), getArrayOrDefault(jsonObject2, "outputs", new JsonArray()).size());
-            } else if (e1 instanceof JsonPrimitive jsonPrimitive1 && e2 instanceof JsonPrimitive jsonPrimitive2) {
-                if (jsonPrimitive1.isString() && jsonPrimitive2.isString()) {
-                    return jsonPrimitive1.getAsString().compareTo(jsonPrimitive2.getAsString());
-                } else if (jsonPrimitive1.isNumber() && jsonPrimitive2.isNumber()) {
-                    return Long.compare(jsonPrimitive1.getAsLong(), jsonPrimitive2.getAsLong());
+                return Integer.compare(getArray(json1, "outputs", new JsonArray()).size(), getArray(json2, "outputs", new JsonArray()).size());
+            } else if (e1 instanceof JsonPrimitive primitive1 && e2 instanceof JsonPrimitive primitive2) {
+                if (primitive1.isString() && primitive2.isString()) {
+                    return primitive1.getAsString().compareTo(primitive2.getAsString());
+                } else if (primitive1.isNumber() && primitive2.isNumber()) {
+                    return Float.compare(primitive1.getAsFloat(), primitive2.getAsFloat());
                 }
             }
-
             return 0;
         });
     }
 
-    public static void removeWhitespace(JsonArray jsonArray) {
-        for (int i = jsonArray.size() - 1; i >= 0; i--) {
-            if (jsonArray.get(i) instanceof JsonPrimitive jsonPrimitive && jsonPrimitive.isString() && jsonPrimitive.getAsString().isBlank()) {
-                jsonArray.remove(i);
+    public static void removeWhitespace(JsonArray array) {
+        for (int i = array.size() - 1; i >= 0; i--) {
+            if (array.get(i) instanceof JsonPrimitive primitive && primitive.isString() && primitive.getAsString().isBlank()) {
+                array.remove(i);
             } else {
                 break;
             }
@@ -148,8 +172,8 @@ public class JsonUtils {
     }
 
     public static void removeWhitespace(JsonObject recipeObject) {
-        final JsonArray inputs = getArrayOrDefault(recipeObject, "inputs", new JsonArray());
-        final JsonArray outputs = getArrayOrDefault(recipeObject, "outputs", new JsonArray());
+        final JsonArray inputs = getArray(recipeObject, "inputs", new JsonArray());
+        final JsonArray outputs = getArray(recipeObject, "outputs", new JsonArray());
         removeWhitespace(inputs);
         removeWhitespace(outputs);
     }
@@ -162,12 +186,23 @@ public class JsonUtils {
         return itemObject;
     }
 
-    public static void addElementToArray(JsonArray jsonArray, JsonElement jsonElement) {
-        if (jsonElement instanceof JsonArray array) {
-            jsonArray.addAll(array);
-        } else if (jsonElement instanceof JsonPrimitive jsonPrimitive) {
-            jsonArray.add(jsonPrimitive);
+    public static void addElementToArray(JsonArray parent, JsonElement element) {
+        if (element instanceof JsonArray array) {
+            parent.addAll(array);
+        } else if (element instanceof JsonPrimitive primitive) {
+            parent.add(primitive);
         }
+    }
+
+    public static void addArray(JsonObject jsonObject, String key, JsonArray array) {
+        removeWhitespace(array);
+        if (array.isEmpty()) {
+            return;
+        }
+
+        jsonObject.add(key, array.size() == 1
+                ? array.get(0)
+                : array);
     }
 
     public static JsonObject serializeItemGroup(Player player, ItemGroup itemGroup) {

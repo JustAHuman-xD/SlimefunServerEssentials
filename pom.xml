@@ -178,7 +178,7 @@
         <dependency>
             <groupId>org.metamechanists</groupId>
             <artifactId>InfinityExpansion</artifactId>
-            <version>3</version>
+            <version>4</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
