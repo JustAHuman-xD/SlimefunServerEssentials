@@ -63,22 +63,33 @@ public class JsonUtils {
         return parent.get(key) instanceof JsonPrimitive primitive ? Optional.of(primitive) : Optional.empty();
     }
 
-    public static boolean equalAmount(JsonElement element1, JsonElement element2) {
-        final Integer amount1 = getAmount(element1);
-        final Integer amount2 = getAmount(element2);
+    public static boolean equalAmount(String id1, String id2) {
+        final Integer amount1 = getAmount(id1);
+        final Integer amount2 = getAmount(id2);
         return amount1.equals(amount2);
     }
 
-    // In Some Special Cases there is no Amount Provided, For Ex, if it is an entity it would be entity:entity_type, or if it is a fluid it would be fluid:fluid_type, in these cases we return 1
-    public static Integer getAmount(JsonElement element) {
-        if (element instanceof JsonPrimitive primitive && primitive.isString() && primitive.getAsString().contains(":")) {
-            final String sub = primitive.getAsString().substring(primitive.getAsString().indexOf(":"));
-            try {
-                return Integer.parseInt(sub);
-            } catch (NumberFormatException ignored) {}
-        } else if (element instanceof JsonArray array) {
-            return getAmount(array.get(0));
+    public static Integer getAmount(String id) {
+        final int start = id.lastIndexOf(':');
+        if (start == -1) {
+            return 1;
         }
+
+        if (id.contains("%")) {
+            id = id.substring(0, id.indexOf("%"));
+        }
+
+        if (id.contains("^")) {
+            id = id.substring(0, id.indexOf("^"));
+        }
+
+        if (id.contains("*")) {
+            id = id.substring(0, id.lastIndexOf('*'));
+        }
+
+        try {
+            return Integer.parseInt(id.substring(start));
+        } catch (NumberFormatException ignored) {}
         return 1;
     }
 
@@ -184,14 +195,6 @@ public class JsonUtils {
         final String nbtString = new NBTItem(itemStack).getCompound().toString();
         itemObject.add("nbt", new JsonPrimitive(nbtString));
         return itemObject;
-    }
-
-    public static void addElementToArray(JsonArray parent, JsonElement element) {
-        if (element instanceof JsonArray array) {
-            parent.addAll(array);
-        } else if (element instanceof JsonPrimitive primitive) {
-            parent.add(primitive);
-        }
     }
 
     public static void addArray(JsonObject jsonObject, String key, JsonArray array) {

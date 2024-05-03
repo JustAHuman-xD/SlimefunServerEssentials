@@ -127,7 +127,7 @@ public class RecipeExporter {
     }
 
     public static JsonObject getCategory(SlimefunItem slimefunItem) {
-        final JsonObject categoryObject = new JsonObject();
+        final JsonObject category = new JsonObject();
         final JsonArray recipes = new JsonArray();
 
         PluginHook matchedHook = null;
@@ -139,7 +139,7 @@ public class RecipeExporter {
         }
 
         if (matchedHook != null) {
-            matchedHook.handle(categoryObject, recipes, slimefunItem);
+            matchedHook.handle(category, recipes, slimefunItem);
         } else if (slimefunItem instanceof CraftingBlock || slimefunItem instanceof MachineBlock) {
             final InfinityLibBlock wrappedBlock = InfinityLibBlock.wrap(slimefunItem);
             for (InfinityLibBlock.Recipe recipe : wrappedBlock.recipes()) {
@@ -150,24 +150,26 @@ public class RecipeExporter {
             }
 
             if (wrappedBlock.energy() != null) {
-                categoryObject.addProperty("energy", wrappedBlock.energy());
+                category.addProperty("energy", wrappedBlock.energy());
             }
 
             final String type = fromLayout(slimefunItem);
             if (type != null) {
-                categoryObject.addProperty("type", type);
+                category.addProperty("type", type);
             }
         } else if (slimefunItem instanceof MultiBlockMachine multiBlock) {
+            // Slimefun saves it as Input, Output, Input, Output, So we skip on the Outputs
+            ItemStack[] inputs = null;
             final List<ItemStack[]> multiBlockRecipes = multiBlock.getRecipes();
-            for (ItemStack[] inputs : multiBlockRecipes) {
-                // Slimefun saves it as Input, Output, Input, Output, So we skip on the Outputs
-                final int index = multiBlockRecipes.indexOf(inputs);
-                if (index % 2 != 0 || multiBlockRecipes.size() - 1 < index + 1) {
+            for (ItemStack[] outputs : multiBlockRecipes) {
+                if (inputs == null) {
+                    inputs = outputs;
                     continue;
                 }
-                addRecipeWithOptimize(recipes, new RecipeBuilder().inputs(inputs).outputs(multiBlockRecipes.get(index + 1)));
+                addRecipeWithOptimize(recipes, new RecipeBuilder().inputs(inputs).outputs(outputs));
+                inputs = outputs;
             }
-            categoryObject.addProperty("type", "grid3");
+            category.addProperty("type", "grid3");
         } else if (slimefunItem instanceof AncientAltar altar) {
             for (AltarRecipe altarRecipe : altar.getRecipes()) {
                 final List<ItemStack> i = altarRecipe.getInput();
@@ -176,7 +178,7 @@ public class RecipeExporter {
                 // An Ancient Altar Task goes through 36 "stages" before completion, the delay between each is 8 ticks.
                 addRecipeWithOptimize(recipes, new RecipeBuilder().ticks(36 * 8).inputs(inputs).output(altarRecipe.getOutput()));
             }
-            categoryObject.addProperty("type", "ancient_altar");
+            category.addProperty("type", "ancient_altar");
         } else if (slimefunItem instanceof AbstractEnergyProvider provider) {
             final Set<MachineFuel> fuelTypes = provider.getFuelTypes();
             for (MachineFuel machineFuel : fuelTypes) {
@@ -190,9 +192,9 @@ public class RecipeExporter {
             }
 
             if (slimefunItem instanceof Reactor) {
-                categoryObject.addProperty("type", "reactor");
+                category.addProperty("type", "reactor");
             }
-            categoryObject.addProperty("energy", provider.getEnergyProduction());
+            category.addProperty("energy", provider.getEnergyProduction());
         } else if (slimefunItem instanceof SolarGenerator generator) {
             addRecipeWithOptimize(recipes, new RecipeBuilder().sfTicks(1).energy(generator.getDayEnergy()).label("day"));
             addRecipeWithOptimize(recipes, new RecipeBuilder().sfTicks(1).energy(generator.getNightEnergy()).label("night"));
@@ -203,35 +205,36 @@ public class RecipeExporter {
                 addRecipeWithOptimize(recipes, new RecipeBuilder().sfTicks(machineRecipe.getTicks()).inputs(inputs).outputs(outputs));
             }
 
-            categoryObject.addProperty("speed", container.getSpeed());
-            categoryObject.addProperty("energy", -container.getEnergyConsumption());
-
             if (slimefunItem instanceof ElectricSmeltery) {
-                categoryObject.addProperty("type", "smeltery");
+                category.addProperty("type", "smeltery");
             }
+            category.addProperty("speed", container.getSpeed());
+            category.addProperty("energy", -container.getEnergyConsumption());
         } else if (slimefunItem instanceof RecipeDisplayItem item) {
             exportDisplayRecipes(item, recipes);
         }
 
         if (!recipes.isEmpty()) {
             JsonUtils.sortJsonArray(recipes);
-            categoryObject.add("recipes", recipes.size() == 1
+            category.add("recipes", recipes.size() == 1
                     ? recipes.get(0)
                     : recipes);
         }
 
-        return categoryObject;
+        return category;
     }
 
-    private static void exportDisplayRecipes(RecipeDisplayItem item, JsonArray recipes) {
+    public static void exportDisplayRecipes(RecipeDisplayItem item, JsonArray recipes) {
+        ItemStack input = null;
         final List<ItemStack> displayRecipes = item.getDisplayRecipes();
-        for (ItemStack input : displayRecipes) {
-            // Slimefun saves it as Input, Output, Input, Output, So we skip on the Outputs
-            final int index = displayRecipes.indexOf(input);
-            if (index % 2 != 0 || displayRecipes.size() - 1 < index + 1) {
+        for (ItemStack output : displayRecipes) {
+            if (input == null) {
+                input = output;
                 continue;
             }
-            addRecipeWithOptimize(recipes, new RecipeBuilder().input(input).output(displayRecipes.get(index + 1)));
+
+            addRecipeWithOptimize(recipes, new RecipeBuilder().input(input).output(output));
+            input = null;
         }
     }
 
@@ -277,7 +280,10 @@ public class RecipeExporter {
                 continue;
             }
 
-            boolean canMerge = complex1.equals(complex2) && labels1.equals(labels2) && outputs1.equals(outputs2);
+            boolean canMerge = complex1.equals(complex2)
+                    && labels1.equals(labels2)
+                    && inputs1.size() == inputs2.size()
+                    && outputs1.equals(outputs2);
 
             if (!canMerge) {
                 continue;
@@ -290,12 +296,12 @@ public class RecipeExporter {
                     break;
                 }
 
-                final JsonElement inputElement1 = inputs1.get(inputIndex);
-                final JsonElement inputElement2 = inputs2.size() - 1 < inputIndex ? new JsonPrimitive("") : inputs2.get(inputIndex);
+                final String input1 = inputs1.get(inputIndex).getAsString();
+                final String input2 = inputs2.get(inputIndex).getAsString();
 
-                canMerge = inputElement1.equals(inputElement2);
+                canMerge = input1.contains(input2) || input2.contains(input1);
                 // We can allow for a single difference in the Inputs as that is the Point of Merging
-                if (!canMerge && !singleDifference && JsonUtils.equalAmount(inputElement1, inputElement2)) {
+                if (!canMerge && !singleDifference && JsonUtils.equalAmount(input1, input2)) {
                     canMerge = true;
                     singleDifference = true;
                 }
@@ -318,11 +324,7 @@ public class RecipeExporter {
                 if (inputElement1.equals(inputElement2)) {
                     inputs3.add(inputElement1);
                 } else {
-                    final JsonArray inputArray3 = new JsonArray();
-                    JsonUtils.addElementToArray(inputArray3, inputElement1);
-                    JsonUtils.addElementToArray(inputArray3, inputElement2);
-                    JsonUtils.sortJsonArray(inputArray3);
-                    inputs3.add(inputArray3);
+                    inputs3.add(inputElement1.getAsString() + "," + inputElement2.getAsString());
                 }
             }
 

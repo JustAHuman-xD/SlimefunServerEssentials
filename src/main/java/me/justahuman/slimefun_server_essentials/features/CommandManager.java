@@ -120,9 +120,9 @@ public class CommandManager extends BaseCommand {
 
         // Add Child Recipes
         for (SlimefunItem slimefunItem : slimefunItems) {
-            final JsonObject categoryObject = RecipeExporter.getCategory(slimefunItem);
-            if (!categoryObject.keySet().isEmpty()) {
-                RecipeExporter.addCategoryWithOptimize(slimefunItem.getId(), categoryObject, root);
+            final JsonObject category = RecipeExporter.getCategory(slimefunItem);
+            if (!category.keySet().isEmpty()) {
+                RecipeExporter.addCategoryWithOptimize(slimefunItem.getId(), category, root);
             }
         }
 
@@ -133,9 +133,9 @@ public class CommandManager extends BaseCommand {
                 continue;
             }
 
-            final JsonObject categoryObject = JsonUtils.getObjectOrDefault(root, recipeType.getKey().getKey(), new JsonObject());
-            RecipeExporter.exportParentCategory(slimefunItem, categoryObject);
-            root.add(recipeType.getKey().getKey(), categoryObject);
+            final JsonObject category = JsonUtils.getObjectOrDefault(root, recipeType.getKey().getKey(), new JsonObject());
+            RecipeExporter.exportParentCategory(slimefunItem, category);
+            root.add(recipeType.getKey().getKey(), category);
         }
     
         exportToFile(player, root, filePath);
