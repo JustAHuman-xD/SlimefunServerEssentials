@@ -299,7 +299,7 @@ public class RecipeExporter {
                 final String input1 = inputs1.get(inputIndex).getAsString();
                 final String input2 = inputs2.get(inputIndex).getAsString();
 
-                canMerge = input1.contains(input2) || input2.contains(input1);
+                canMerge = input1.equals(input2) || input1.contains(input2) || input2.contains(input1);
                 // We can allow for a single difference in the Inputs as that is the Point of Merging
                 if (!canMerge && !singleDifference && JsonUtils.equalAmount(input1, input2)) {
                     canMerge = true;

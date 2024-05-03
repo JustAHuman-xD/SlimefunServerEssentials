@@ -7,9 +7,9 @@ import io.github.thebusybiscuit.slimefun4.api.items.groups.NestedItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.groups.SubItemGroup;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.items.VanillaItem;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import me.justahuman.slimefun_server_essentials.SlimefunServerEssentials;
 import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 
@@ -92,10 +92,31 @@ public class Utils {
     }
 
     public static ItemStack damage(ItemStack itemStack) {
+        return damage(itemStack, 1);
+    }
+
+    public static ItemStack maxDamage(ItemStack itemStack) {
         itemStack = itemStack.clone();
         if (itemStack.getItemMeta() instanceof Damageable damageable) {
-            damageable.setDamage(damageable.getDamage() + 1);
+            damageable.setDamage(itemStack.getType().getMaxDurability() - 1);
             itemStack.setItemMeta(damageable);
+        }
+        return itemStack;
+    }
+
+    public static ItemStack damage(ItemStack itemStack, int damage) {
+        itemStack = itemStack.clone();
+        if (itemStack.getItemMeta() instanceof Damageable damageable) {
+            damageable.setDamage(damageable.getDamage() + damage);
+            itemStack.setItemMeta(damageable);
+        }
+        return itemStack;
+    }
+
+    public static ItemStack enchant(ItemStack itemStack, Enchantment... enchantments) {
+        itemStack = itemStack.clone();
+        for (Enchantment enchantment : enchantments) {
+            itemStack.addEnchantment(enchantment, enchantment.getStartLevel());
         }
         return itemStack;
     }
