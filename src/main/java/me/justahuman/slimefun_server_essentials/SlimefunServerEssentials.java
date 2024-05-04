@@ -30,7 +30,6 @@ public final class SlimefunServerEssentials extends JavaPlugin {
 
         new Metrics(instance, 18206);
 
-        PluginHook.init();
         getServer().getPluginManager().registerEvents(new RegistryFinalizedListener(), this);
 
         final PaperCommandManager paperCommandManager = new PaperCommandManager(this);

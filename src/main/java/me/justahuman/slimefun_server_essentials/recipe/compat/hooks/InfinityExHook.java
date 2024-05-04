@@ -2,6 +2,7 @@ package me.justahuman.slimefun_server_essentials.recipe.compat.hooks;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.github.mooy1.infinityexpansion.items.abstracts.AbstractEnergyCrafter;
 import io.github.mooy1.infinityexpansion.items.blocks.StrainerBase;
 import io.github.mooy1.infinityexpansion.items.generators.EnergyGenerator;
 import io.github.mooy1.infinityexpansion.items.generators.GenerationType;
@@ -53,13 +54,13 @@ import java.util.Map;
 
 public class InfinityExHook extends PluginHook {
     private static final ItemStack INFINITY_INGOT_USAGE = new ComplexItem(new CustomItemStack(Materials.INFINITE_INGOT, meta -> {
-       final List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+       final List<String> lore = meta.getLore() != null ? meta.getLore() : new ArrayList<>();
        lore.add(0, " ");
        lore.add(0, ChatColor.WHITE + "Lasts: 27h 13m 20s");
        meta.setLore(lore);
     }));
     private static final ItemStack VOID_INGOT_USAGE = new ComplexItem(new CustomItemStack(Materials.VOID_INGOT, meta -> {
-        final List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+        final List<String> lore = meta.getLore() != null ? meta.getLore() : new ArrayList<>();
         lore.add(0, " ");
         lore.add(0, ChatColor.WHITE + "Lasts: 4h 26m 40s");
         meta.setLore(lore);
@@ -201,7 +202,7 @@ public class InfinityExHook extends PluginHook {
                     final int tierEnergy = ReflectionUtils.getField(tier, "energy", 0);
                     final int xp = ReflectionUtils.getField(tier, "xp", 0);
                     final RecipeBuilder builder = new RecipeBuilder()
-                            .input(card.getItem(), false)
+                            .input(card.getItem(), 0)
                             .energy(baseEnergy + tierEnergy)
                             .sfTicks(time);
 
@@ -238,13 +239,13 @@ public class InfinityExHook extends PluginHook {
             addUpgradeRecipes(recipes, toolTypes, toolMaterials, toolRecipe);
             addUpgradeRecipes(recipes, armorTypes, armorMaterials, armorRecipe);
 
-            energy = ReflectionUtils.getField(transformer, "energy", 0);
+            energy = ReflectionUtils.getField(AbstractEnergyCrafter.class, transformer, "energy", 0);
         } else if (slimefunItem instanceof GrowingMachine machine) {
             final EnumMap<Material, ItemStack[]> growingRecipes = ReflectionUtils.getField(machine, "recipes", new EnumMap<>(Material.class));
             final int time = ReflectionUtils.getField(machine, "ticksPerOutput", 0);
             for (Map.Entry<Material, ItemStack[]> recipe : growingRecipes.entrySet()) {
                 add(recipes, new RecipeBuilder()
-                        .input(new ItemStack(recipe.getKey()), false)
+                        .input(new ItemStack(recipe.getKey()), 0)
                         .outputs(recipe.getValue())
                         .sfTicks(time));
             }
@@ -283,7 +284,7 @@ public class InfinityExHook extends PluginHook {
                     }
 
                     add(recipes, new RecipeBuilder()
-                            .input(oscillator.getItem(), false)
+                            .input(oscillator.getItem(), 0)
                             .output(new ItemStack(oscillator.getItem().getType(), speed),
                                     (float) (1.0 / (double) quarry.chance() * oscillator.chance))
                             .label(RecipeExporter.getLabelName(dimension))
@@ -304,12 +305,12 @@ public class InfinityExHook extends PluginHook {
                 Collections.reverse(entries);
 
                 add(recipes, new RecipeBuilder()
-                        .input(oscillator.getItem(), false)
+                        .input(oscillator.getItem(), 0)
                         .output(new ItemStack(pool.commonDrop(), quarry.speed()), baseChance * (1F/10F))
                         .sfTicks(interval));
                 for (Map.Entry<Material, Float> drop : entries) {
                     add(recipes, new RecipeBuilder()
-                            .input(oscillator.getItem(), false)
+                            .input(oscillator.getItem(), 0)
                             .output(new ItemStack(drop.getKey(), quarry.speed()),
                                     baseChance * (9F/10F) * drop.getValue())
                             .sfTicks(interval));

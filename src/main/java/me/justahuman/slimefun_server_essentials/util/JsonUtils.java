@@ -14,6 +14,7 @@ import io.github.thebusybiscuit.slimefun4.api.items.groups.SubItemGroup;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.items.VanillaItem;
 import me.justahuman.slimefun_server_essentials.recipe.compat.misc.ComplexItem;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -190,6 +191,10 @@ public class JsonUtils {
     }
 
     public static JsonObject serializeItem(ItemStack itemStack) {
+        if (itemStack == null) {
+            itemStack = new ItemStack(Material.AIR);
+        }
+
         final JsonObject itemObject = new JsonObject();
         itemObject.add("item", new JsonPrimitive("minecraft:" + itemStack.getType().name().toLowerCase()));
         final String nbtString = new NBTItem(itemStack).getCompound().toString();
@@ -208,10 +213,10 @@ public class JsonUtils {
                 : array);
     }
 
-    public static JsonObject serializeItemGroup(Player player, ItemGroup itemGroup) {
+    public static JsonObject serializeItemGroup(ItemGroup itemGroup) {
         final JsonObject groupObject = new JsonObject();
         final JsonArray items = new JsonArray();
-        groupObject.add("item", serializeItem(itemGroup.getItem(player)));
+        groupObject.add("item", serializeItem(ReflectionUtils.getField(ItemGroup.class, itemGroup, "item", new ItemStack(Material.AIR))));
         for (SlimefunItem slimefunItem : itemGroup.getItems()) {
             items.add(slimefunItem.getId());
         }

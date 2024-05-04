@@ -3,11 +3,8 @@ package me.justahuman.slimefun_server_essentials.recipe.compat;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
-import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
 import me.justahuman.slimefun_server_essentials.recipe.RecipeBuilder;
 import me.justahuman.slimefun_server_essentials.recipe.RecipeExporter;
-import me.justahuman.slimefun_server_essentials.recipe.compat.hooks.InfinityExHook;
-import me.justahuman.slimefun_server_essentials.recipe.compat.hooks.SlimefunHook;
 import me.justahuman.slimefun_server_essentials.util.Hooks;
 
 import java.util.ArrayList;
@@ -18,11 +15,6 @@ public abstract class PluginHook {
         Hooks.HOOKS.add(this);
     }
 
-    public static void init() {
-        new SlimefunHook();
-        new InfinityExHook();
-    }
-
     public List<String> getSpecialCases() {
         return new ArrayList<>();
     }
@@ -30,7 +22,7 @@ public abstract class PluginHook {
     public abstract boolean handles(SlimefunItem slimefunItem);
     public abstract void handle(JsonObject category, JsonArray recipes, SlimefunItem slimefunItem);
 
-    public boolean handlesParent(RecipeType recipeType) {
+    public boolean handlesParent(SlimefunItem slimefunItem) {
         return false;
     }
     public void handleParent(JsonObject category, JsonArray recipes, SlimefunItem slimefunItem) {

@@ -38,11 +38,11 @@ public class RecipeBuilder {
     }
 
     public RecipeBuilder input(ItemStack itemStack) {
-        return input(itemStack, true);
+        return input(itemStack, 1);
     }
 
-    public RecipeBuilder input(ItemStack itemStack, boolean consumed) {
-        return input(JsonUtils.process(this.complex, itemStack) + (consumed ? "" : "*"));
+    public RecipeBuilder input(ItemStack itemStack, float chance) {
+        return input(JsonUtils.process(this.complex, itemStack, chance));
     }
 
     public RecipeBuilder input(String input) {

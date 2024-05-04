@@ -8,12 +8,15 @@ import io.github.thebusybiscuit.slimefun4.api.items.groups.SubItemGroup;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.items.VanillaItem;
 import me.justahuman.slimefun_server_essentials.SlimefunServerEssentials;
+import me.justahuman.slimefun_server_essentials.recipe.compat.misc.ComplexItem;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -114,11 +117,17 @@ public class Utils {
     }
 
     public static ItemStack enchant(ItemStack itemStack, Enchantment... enchantments) {
-        itemStack = itemStack.clone();
+        itemStack = new ComplexItem(itemStack);
         for (Enchantment enchantment : enchantments) {
-            itemStack.addEnchantment(enchantment, enchantment.getStartLevel());
+            itemStack.addUnsafeEnchantment(enchantment, enchantment.getStartLevel());
         }
         return itemStack;
+    }
+
+    public static <T> Set<T> merge(Collection<T> collection, T... values) {
+        final Set<T> set = new HashSet<>(collection);
+        set.addAll(Arrays.asList(values));
+        return set;
     }
 
     public static void log(String log) {

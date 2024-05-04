@@ -116,14 +116,23 @@ public class RecipeExporter {
         return null;
     }
 
-    public static void exportParentCategory(SlimefunItem slimefunItem, JsonObject category) {
+    public static void addParentCategory(JsonObject category, SlimefunItem slimefunItem) {
+        final JsonArray recipes = JsonUtils.getArray(category, "recipes", new JsonArray());
+        category.add("recipes", recipes);
+
         if (!category.has("item")) {
             category.add("item", JsonUtils.serializeItem(slimefunItem.getRecipeType().toItem()));
         }
 
-        final JsonArray recipesArray = JsonUtils.getArray(category, "recipes", new JsonArray());
-        addRecipeWithOptimize(recipesArray, new RecipeBuilder().inputs(slimefunItem.getRecipe()).output(slimefunItem.getRecipeOutput()));
-        category.add("recipes", recipesArray);
+        for (PluginHook hook : Hooks.HOOKS) {
+            if (hook.handlesParent(slimefunItem)) {
+                hook.handleParent(category, recipes, slimefunItem);
+                return;
+            }
+        }
+
+        category.addProperty("type", "grid3");
+        addRecipeWithOptimize(recipes, new RecipeBuilder().inputs(slimefunItem.getRecipe()).output(slimefunItem.getRecipeOutput()));
     }
 
     public static JsonObject getCategory(SlimefunItem slimefunItem) {
@@ -167,7 +176,7 @@ public class RecipeExporter {
                     continue;
                 }
                 addRecipeWithOptimize(recipes, new RecipeBuilder().inputs(inputs).outputs(outputs));
-                inputs = outputs;
+                inputs = null;
             }
             category.addProperty("type", "grid3");
         } else if (slimefunItem instanceof AncientAltar altar) {
