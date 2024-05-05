@@ -227,7 +227,7 @@ public class SlimefunHook extends PluginHook {
     public void handleParent(JsonObject category, JsonArray recipes, SlimefunItem slimefunItem) {
         final RecipeType recipeType = slimefunItem.getRecipeType();
         if (recipeType == RecipeType.BARTER_DROP) {
-            add(recipes, new RecipeBuilder().input("@piglin:1").input("gold_ingot:1").output(slimefunItem.getRecipeOutput()));
+            add(recipes, new RecipeBuilder().input("@piglin:1%0").input("gold_ingot:1").output(slimefunItem.getRecipeOutput()));
         } else if (recipeType == RecipeType.MOB_DROP) {
             if (slimefunItem instanceof BasicCircuitBoard board && board.isDroppedFromGolems()) {
                 add(recipes, new RecipeBuilder().input("@iron_golem:1").output(board.getRecipeOutput(), board.getMobDropChance() / 100F));
