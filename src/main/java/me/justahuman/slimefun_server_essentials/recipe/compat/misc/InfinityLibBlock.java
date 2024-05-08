@@ -27,7 +27,7 @@ public record InfinityLibBlock(List<Recipe> recipes, Integer energy) {
 
     public static InfinityLibBlock wrap(CraftingBlock craftingBlock) {
         Integer energy = null;
-        final List<CraftingBlockRecipe> craftingRecipes = ReflectionUtils.getField(craftingBlock, "recipes", new ArrayList<>());
+        final List<CraftingBlockRecipe> craftingRecipes = ReflectionUtils.getField(CraftingBlock.class, craftingBlock, "recipes", new ArrayList<>());
         final List<Recipe> recipes = new ArrayList<>(craftingRecipes.stream().map(Recipe::wrap).toList());
 
         if (craftingBlock instanceof EnergyNetComponent component) {

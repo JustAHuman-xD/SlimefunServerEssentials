@@ -39,17 +39,11 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.PotionData;
-import org.bukkit.potion.PotionType;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SlimefunHook extends PluginHook {
@@ -168,37 +162,7 @@ public class SlimefunHook extends PluginHook {
             chargingBenchRecipe(bench, recipes, SlimefunItems.REINFORCED_ALLOY_MULTI_TOOL);
             chargingBenchRecipe(bench, recipes, SlimefunItems.CARBONADO_MULTI_TOOL);
         } else if (slimefunItem instanceof AutoBrewer) {
-            final Set<Material> basePotions = new HashSet<>(Set.of(Material.POTION, Material.SPLASH_POTION, Material.LINGERING_POTION));
-            final Set<Material> modifiers = new HashSet<>(Set.of(Material.FERMENTED_SPIDER_EYE, Material.NETHER_WART, Material.GUNPOWDER, Material.DRAGON_BREATH));
-            final Map<Material, PotionType> potionRecipes = ReflectionUtils.getField(slimefunItem, "potionRecipes", new HashMap<>());
-            final Set<Material> ingredients = Utils.merge(potionRecipes.keySet(), Material.FERMENTED_SPIDER_EYE, Material.REDSTONE, Material.GLOWSTONE_DUST);
-            for (Material potion : basePotions) {
-                for (Material modifier : modifiers) {
-                    final ItemStack itemStack = new ItemStack(potion);
-                    final PotionMeta potionMeta = (PotionMeta) itemStack.getItemMeta();
-                    potionMeta.setBasePotionData(new PotionData(PotionType.WATER));
-                    itemStack.setItemMeta(potionMeta);
-
-                    final Class<?>[] paramTypes = {Material.class, Material.class, PotionMeta.class};
-                    final Object[] args = {modifier, itemStack.getType(), potionMeta};
-                    final ItemStack result = ReflectionUtils.callMethod(slimefunItem, "brew", null, paramTypes, args);
-                    if (result == null) {
-                        continue;
-                    }
-
-                    result.setItemMeta(potionMeta);
-                    add(recipes, new RecipeBuilder().input(new ComplexItem(itemStack)).input(new ItemStack(modifier)).output(new ComplexItem(result)).sfTicks(60));
-                    for (Material ingredient : ingredients) {
-                        final PotionMeta newMeta = (PotionMeta) result.getItemMeta();
-                        final Object[] newArgs = {ingredient, result.getType(), newMeta};
-                        final ItemStack subResult = ReflectionUtils.callMethod(slimefunItem, "brew", null, paramTypes, newArgs);
-                        if (subResult != null) {
-                            subResult.setItemMeta(newMeta);
-                            add(recipes, new RecipeBuilder().input(new ComplexItem(result)).input(new ItemStack(ingredient)).output(new ItemStack(subResult)).sfTicks(60));
-                        }
-                    }
-                }
-            }
+            // TODO
         } else if (slimefunItem instanceof IndustrialMiner miner) {
             for (ItemStack itemStack : miner.getDisplayRecipes()) {
                 add(recipes, new RecipeBuilder().input(new ComplexItem(itemStack)));
@@ -267,7 +231,7 @@ public class SlimefunHook extends PluginHook {
     public void autoAnvilRecipe(AutoAnvil anvil, JsonArray recipes, Material material) {
         final ItemStack defaultItem = new ItemStack(material);
         final ItemStack damagedItem = Utils.maxDamage(defaultItem);
-        final ItemStack repairedItem = ReflectionUtils.callMethod(anvil, "repair", defaultItem, new Class<?>[]{ItemStack.class}, new Object[]{damagedItem});
+        final ItemStack repairedItem = ReflectionUtils.callMethod(AutoAnvil.class, anvil, "repair", defaultItem, new Class<?>[]{ItemStack.class}, new Object[]{damagedItem});
         add(recipes, new RecipeBuilder().input(damagedItem).input(SlimefunItems.DUCT_TAPE).output(repairedItem).sfTicks(60));
     }
 
@@ -309,7 +273,7 @@ public class SlimefunHook extends PluginHook {
         final ItemStack itemStack = new ItemStack(material);
         for (int i = 0; i < enchantments.length; i++) {
             final Enchantment enchantment = enchantments[RANDOM.nextInt(enchantments.length)];
-            if (enchantment.canEnchantItem(itemStack)) {
+            if (!enchantment.getKey().getKey().contains("curse") && enchantment.canEnchantItem(itemStack)) {
                 applicable.add(enchantment);
             }
 
