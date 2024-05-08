@@ -14,13 +14,17 @@ import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.ChargingBench;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.ElectricDustWasher;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.ElectricGoldPan;
+import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.FluidPump;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.accelerators.AnimalGrowthAccelerator;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.enchanting.AutoDisenchanter;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.enchanting.AutoEnchanter;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.enchanting.BookBinder;
+import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.entities.AbstractEntityAssembler;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.entities.AutoBreeder;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.entities.ExpCollector;
+import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.entities.IronGolemAssembler;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.entities.ProduceCollector;
+import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.entities.WitherAssembler;
 import io.github.thebusybiscuit.slimefun4.implementation.items.geo.GEOMiner;
 import io.github.thebusybiscuit.slimefun4.implementation.items.geo.OilPump;
 import io.github.thebusybiscuit.slimefun4.implementation.items.misc.BasicCircuitBoard;
@@ -71,7 +75,11 @@ public class SlimefunHook extends PluginHook {
                 || slimefunItem instanceof AutoBrewer
                 || slimefunItem instanceof AutoBreeder
                 || slimefunItem instanceof ProduceCollector
-                || slimefunItem instanceof AnimalGrowthAccelerator;
+                || slimefunItem instanceof AnimalGrowthAccelerator
+                || slimefunItem instanceof FluidPump
+                || slimefunItem instanceof ExpCollector
+                || slimefunItem instanceof IronGolemAssembler
+                || slimefunItem instanceof WitherAssembler;
     }
 
     @Override
@@ -121,7 +129,7 @@ public class SlimefunHook extends PluginHook {
             category.addProperty("speed", geoMiner.getSpeed());
             category.addProperty("energy", -geoMiner.getEnergyConsumption());
         } else if (slimefunItem instanceof OilPump) {
-            add(recipes, new RecipeBuilder().input(new ItemStack(Material.BUCKET)).output(SlimefunItems.OIL_BUCKET).sfTicks(52));
+            add(recipes, new RecipeBuilder().label("geo_scanned").input(new ItemStack(Material.BUCKET)).output(SlimefunItems.OIL_BUCKET).sfTicks(52));
         } else if (slimefunItem instanceof AutoAnvil anvil) {
             autoAnvilRecipe(anvil, recipes, Material.WOODEN_HOE);
             autoAnvilRecipe(anvil, recipes, Material.STONE_SHOVEL);
@@ -177,6 +185,18 @@ public class SlimefunHook extends PluginHook {
         } else if (slimefunItem instanceof AnimalGrowthAccelerator) {
             add(recipes, new RecipeBuilder().input("@baby_cow:1").input(organicFoodInput()).output("@cow:1").sfTicks(1));
             category.addProperty("energy", -14);
+        } else if (slimefunItem instanceof FluidPump) {
+            add(recipes, new RecipeBuilder().input("~water:1").input("empty_bucket:1").output("water_bucket:1"));
+            add(recipes, new RecipeBuilder().input("~water:1").input("glass_bottle:1").output(Utils.WATER_BOTTLE));
+            add(recipes, new RecipeBuilder().input("~lava:1").input("empty_bucket:1").output("lava_bucket:1"));
+            category.addProperty("energy", -32);
+        } else if (slimefunItem instanceof AbstractEntityAssembler<?> assembler) {
+            if (slimefunItem instanceof IronGolemAssembler) {
+                add(recipes, new RecipeBuilder().input("pumpkin:1").input("iron_block:4").output("@iron_golem:1").sfTicks(60));
+            } else if (slimefunItem instanceof WitherAssembler) {
+                add(recipes, new RecipeBuilder().input("wither_skeleton_skull:3").input("soul_sand:4").output("@wither:1").sfTicks(60));
+            }
+            category.addProperty("energy", -assembler.getEnergyConsumption());
         }
 
         if (slimefunItem instanceof AContainer container) {

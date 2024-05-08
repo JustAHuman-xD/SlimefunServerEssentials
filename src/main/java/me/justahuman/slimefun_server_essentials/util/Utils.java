@@ -7,12 +7,17 @@ import io.github.thebusybiscuit.slimefun4.api.items.groups.NestedItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.groups.SubItemGroup;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.items.VanillaItem;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import me.justahuman.slimefun_server_essentials.SlimefunServerEssentials;
 import me.justahuman.slimefun_server_essentials.recipe.compat.misc.ComplexItem;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,6 +34,7 @@ public class Utils {
     public static final Map<String, Set<SlimefunItem>> slimefunItems = new HashMap<>();
     public static final Map<String, Set<ItemGroup>> itemGroups = new HashMap<>();
     public static final Map<NamespacedKey, List<SubItemGroup>> subItemGroups = new HashMap<>();
+    public static final ItemStack WATER_BOTTLE = new CustomItemStack(Material.POTION, meta -> ((PotionMeta) meta).setBasePotionData(new PotionData(PotionType.WATER)));
 
     public static void load() {
         for (SlimefunItem slimefunItem : Slimefun.getRegistry().getEnabledSlimefunItems()) {
