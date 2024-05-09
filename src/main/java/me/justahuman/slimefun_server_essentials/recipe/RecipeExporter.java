@@ -36,8 +36,8 @@ import java.util.Objects;
 import java.util.Set;
 
 public class RecipeExporter {
-    public static String fromLayout(Object objectWithLayout) {
-        final MachineLayout layout = ReflectionUtils.getField(objectWithLayout, "layout", MachineLayout.MACHINE_DEFAULT);
+    public static String fromLayout(Class<?> clazz, Object objectWithLayout) {
+        final MachineLayout layout = ReflectionUtils.getField(clazz, objectWithLayout, "layout", MachineLayout.MACHINE_DEFAULT);
         if (layout == MachineLayout.CRAFTING_DEFAULT) {
             return "grid3";
         } else if (layout == MachineLayout.MACHINE_DEFAULT) {
@@ -162,7 +162,8 @@ public class RecipeExporter {
                 category.addProperty("energy", wrappedBlock.energy());
             }
 
-            final String type = fromLayout(slimefunItem);
+            final String type = fromLayout(slimefunItem instanceof CraftingBlock
+                    ? CraftingBlock.class : MachineBlock.class, slimefunItem);
             if (type != null) {
                 category.addProperty("type", type);
             }
