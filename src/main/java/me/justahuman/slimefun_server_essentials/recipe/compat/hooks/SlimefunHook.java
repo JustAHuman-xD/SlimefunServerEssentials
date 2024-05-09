@@ -15,7 +15,10 @@ import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.ElectricDustWasher;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.ElectricGoldPan;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.FluidPump;
+import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.accelerators.AbstractGrowthAccelerator;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.accelerators.AnimalGrowthAccelerator;
+import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.accelerators.CropGrowthAccelerator;
+import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.accelerators.TreeGrowthAccelerator;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.enchanting.AutoDisenchanter;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.enchanting.AutoEnchanter;
 import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.enchanting.BookBinder;
@@ -28,12 +31,14 @@ import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines
 import io.github.thebusybiscuit.slimefun4.implementation.items.geo.GEOMiner;
 import io.github.thebusybiscuit.slimefun4.implementation.items.geo.OilPump;
 import io.github.thebusybiscuit.slimefun4.implementation.items.misc.BasicCircuitBoard;
+import io.github.thebusybiscuit.slimefun4.implementation.items.misc.OrganicFertilizer;
 import io.github.thebusybiscuit.slimefun4.implementation.items.misc.OrganicFood;
 import io.github.thebusybiscuit.slimefun4.implementation.items.multiblocks.AutomatedPanningMachine;
 import io.github.thebusybiscuit.slimefun4.implementation.items.multiblocks.OreWasher;
 import io.github.thebusybiscuit.slimefun4.implementation.items.multiblocks.miner.IndustrialMiner;
 import io.github.thebusybiscuit.slimefun4.implementation.items.tools.GoldPan;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.RandomizedSet;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import me.justahuman.slimefun_server_essentials.recipe.RecipeBuilder;
 import me.justahuman.slimefun_server_essentials.recipe.compat.PluginHook;
 import me.justahuman.slimefun_server_essentials.recipe.compat.misc.ComplexItem;
@@ -43,15 +48,25 @@ import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SlimefunHook extends PluginHook {
     private static final ThreadLocalRandom RANDOM = ThreadLocalRandom.current();
+    private static final ItemStack TREE_INPUT = new CustomItemStack(Material.OAK_SAPLING, "&eAge 0 Sapling");
+    private static final ItemStack TREE_OUTPUT = new CustomItemStack(Material.OAK_SAPLING, "&eAge 1 Sapling");
+    private static final ItemStack CROP_INPUT = new CustomItemStack(Material.POTATO, "&eStage 0 Growth");
+    private static final ItemStack CROP_OUTPUT = new CustomItemStack(Material.POTATO, "&eStage 1 Growth");
 
     @Override
     public List<String> getSpecialCases() {
@@ -79,7 +94,9 @@ public class SlimefunHook extends PluginHook {
                 || slimefunItem instanceof FluidPump
                 || slimefunItem instanceof ExpCollector
                 || slimefunItem instanceof IronGolemAssembler
-                || slimefunItem instanceof WitherAssembler;
+                || slimefunItem instanceof WitherAssembler
+                || slimefunItem instanceof TreeGrowthAccelerator
+                || slimefunItem instanceof CropGrowthAccelerator;
     }
 
     @Override
@@ -170,7 +187,37 @@ public class SlimefunHook extends PluginHook {
             chargingBenchRecipe(bench, recipes, SlimefunItems.REINFORCED_ALLOY_MULTI_TOOL);
             chargingBenchRecipe(bench, recipes, SlimefunItems.CARBONADO_MULTI_TOOL);
         } else if (slimefunItem instanceof AutoBrewer) {
-            // TODO
+            final Set<Material> basePotions = new HashSet<>(Set.of(Material.POTION, Material.SPLASH_POTION, Material.LINGERING_POTION));
+            final Set<Material> modifiers = new HashSet<>(Set.of(Material.FERMENTED_SPIDER_EYE, Material.NETHER_WART, Material.GUNPOWDER, Material.DRAGON_BREATH));
+            final Map<Material, PotionType> potionRecipes = ReflectionUtils.getField(slimefunItem, "potionRecipes", new HashMap<>());
+            final Set<Material> ingredients = Utils.merge(potionRecipes.keySet(), Material.FERMENTED_SPIDER_EYE, Material.REDSTONE, Material.GLOWSTONE_DUST);
+            for (Material potion : basePotions) {
+                for (Material modifier : modifiers) {
+                    final ItemStack itemStack = new ItemStack(potion);
+                    final PotionMeta potionMeta = (PotionMeta) itemStack.getItemMeta();
+                    potionMeta.setBasePotionData(new PotionData(PotionType.WATER));
+                    itemStack.setItemMeta(potionMeta);
+
+                    final Class<?>[] paramTypes = {Material.class, Material.class, PotionMeta.class};
+                    final Object[] args = {modifier, itemStack.getType(), potionMeta};
+                    final ItemStack result = ReflectionUtils.callMethod(slimefunItem, "brew", null, paramTypes, args);
+                    if (result == null) {
+                        continue;
+                    }
+
+                    result.setItemMeta(potionMeta);
+                    add(recipes, new RecipeBuilder().input(new ComplexItem(itemStack)).input(new ItemStack(modifier)).output(new ComplexItem(result)).sfTicks(60));
+                    for (Material ingredient : ingredients) {
+                        final PotionMeta newMeta = (PotionMeta) result.getItemMeta();
+                        final Object[] newArgs = {ingredient, result.getType(), newMeta};
+                        final ItemStack subResult = ReflectionUtils.callMethod(slimefunItem, "brew", null, paramTypes, newArgs);
+                        if (subResult != null) {
+                            subResult.setItemMeta(newMeta);
+                            add(recipes, new RecipeBuilder().input(new ComplexItem(result)).input(new ItemStack(ingredient)).output(new ComplexItem(subResult)).sfTicks(60));
+                        }
+                    }
+                }
+            }
         } else if (slimefunItem instanceof IndustrialMiner miner) {
             for (ItemStack itemStack : miner.getDisplayRecipes()) {
                 add(recipes, new RecipeBuilder().input(new ComplexItem(itemStack)));
@@ -180,11 +227,19 @@ public class SlimefunHook extends PluginHook {
             add(recipes, new RecipeBuilder().input("@goat:1%0").input(new ItemStack(Material.BUCKET)).output(new ItemStack(Material.MILK_BUCKET)).sfTicks(1));
             add(recipes, new RecipeBuilder().input("@mooshroom:1%0").input(new ItemStack(Material.BOWL)).output(new ItemStack(Material.MUSHROOM_STEW)).sfTicks(1));
         } else if (slimefunItem instanceof AutoBreeder) {
-            add(recipes, new RecipeBuilder().input("@cow:2%0").input(organicFoodInput()).output("@baby_cow:1").sfTicks(2));
+            add(recipes, new RecipeBuilder().input("@cow:2%0").input(matchingInput(OrganicFood.class)).output("@baby_cow:1").sfTicks(2));
             category.addProperty("energy", -120);
-        } else if (slimefunItem instanceof AnimalGrowthAccelerator) {
-            add(recipes, new RecipeBuilder().input("@baby_cow:1").input(organicFoodInput()).output("@cow:1").sfTicks(1));
-            category.addProperty("energy", -14);
+        } else if (slimefunItem instanceof AbstractGrowthAccelerator) {
+            if (slimefunItem instanceof AnimalGrowthAccelerator) {
+                add(recipes, new RecipeBuilder().input("@baby_cow:1").input(matchingInput(OrganicFood.class)).output("@cow:1").sfTicks(1));
+                category.addProperty("energy", -ReflectionUtils.getField(slimefunItem, "ENERGY_CONSUMPTION", 0));
+            } else if (slimefunItem instanceof TreeGrowthAccelerator) {
+                add(recipes, new RecipeBuilder().input(TREE_INPUT).input(matchingInput(OrganicFertilizer.class)).output(TREE_OUTPUT).sfTicks(1));
+                category.addProperty("energy", -ReflectionUtils.getField(slimefunItem, "ENERGY_CONSUMPTION", 0));
+            } else if (slimefunItem instanceof CropGrowthAccelerator accelerator) {
+                add(recipes, new RecipeBuilder().input(CROP_INPUT).output(CROP_OUTPUT).sfTicks(1));
+                category.addProperty("energy", -accelerator.getEnergyConsumption());
+            }
         } else if (slimefunItem instanceof FluidPump) {
             add(recipes, new RecipeBuilder().input("~water:1").input("empty_bucket:1").output("water_bucket:1"));
             add(recipes, new RecipeBuilder().input("~water:1").input("glass_bottle:1").output(Utils.WATER_BOTTLE));
@@ -312,13 +367,13 @@ public class SlimefunHook extends PluginHook {
         final float charge = bench.getEnergyConsumption() / 2.0F;
         final ItemStack charged = itemStack.clone();
         rechargeable.addItemCharge(charged, charge);
-        add(recipes, new RecipeBuilder().input(itemStack).output(charged).sfTicks(1));
+        add(recipes, new RecipeBuilder().input(itemStack).output(new ComplexItem(charged)).sfTicks(1));
     }
 
-    public String organicFoodInput() {
+    private String matchingInput(Class<?> clazz) {
         final StringBuilder input = new StringBuilder();
         for (SlimefunItem item : Slimefun.getRegistry().getEnabledSlimefunItems()) {
-            if (item instanceof OrganicFood) {
+            if (clazz.isInstance(item)) {
                 if (!input.isEmpty()) {
                     input.append(',');
                 }

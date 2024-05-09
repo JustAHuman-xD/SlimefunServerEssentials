@@ -1,9 +1,9 @@
 package me.justahuman.slimefun_server_essentials.recipe.compat.misc;
 
+import io.github.mooy1.infinityexpansion.infinitylib.machines.CraftingBlock;
+import io.github.mooy1.infinityexpansion.infinitylib.machines.CraftingBlockRecipe;
+import io.github.mooy1.infinityexpansion.infinitylib.machines.MachineBlock;
 import io.github.mooy1.infinitylib.common.StackUtils;
-import io.github.mooy1.infinitylib.machines.CraftingBlock;
-import io.github.mooy1.infinitylib.machines.CraftingBlockRecipe;
-import io.github.mooy1.infinitylib.machines.MachineBlock;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.core.attributes.EnergyNetComponent;
 import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNetComponentType;

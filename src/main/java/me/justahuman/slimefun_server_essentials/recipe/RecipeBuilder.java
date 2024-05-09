@@ -16,7 +16,7 @@ public class RecipeBuilder {
     private final JsonArray labels = new JsonArray();
 
     public RecipeBuilder sfTicks(Integer ticks) {
-        return ticks(ticks * 10);
+        return ticks == null ? this : ticks(ticks * 10);
     }
 
     public RecipeBuilder ticks(Integer ticks) {
@@ -103,6 +103,4 @@ public class RecipeBuilder {
         
         return recipe;
     }
-
-
 }

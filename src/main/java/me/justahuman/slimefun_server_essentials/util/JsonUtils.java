@@ -138,7 +138,7 @@ public class JsonUtils {
             processed.append('%').append(chance);
         }
 
-        if (!complex && itemStack.getItemMeta() instanceof Damageable damageable && damageable.hasDamage()) {
+        if (!complex && itemStack.hasItemMeta() && itemStack.getItemMeta() instanceof Damageable damageable && damageable.hasDamage()) {
             processed.append('^').append(damageable.getDamage());
         }
 
