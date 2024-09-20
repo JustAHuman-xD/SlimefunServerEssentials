@@ -197,7 +197,10 @@ public class JsonUtils {
         final JsonObject itemObject = new JsonObject();
         itemObject.add("item", new JsonPrimitive("minecraft:" + itemStack.getType().name().toLowerCase()));
 
-        final String nbtString = NBT.itemStackToNBT(itemStack).toString();
+        String nbtString = NBT.itemStackToNBT(itemStack).toString();
+        if (nbtString.startsWith("{components:")) {
+            nbtString = nbtString.substring(12, nbtString.length() - 1);
+        }
         itemObject.add("components", new JsonPrimitive(nbtString));
         return itemObject;
     }
