@@ -7,6 +7,7 @@ import io.github.mooy1.infinitylib.common.StackUtils;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.core.attributes.EnergyNetComponent;
 import io.github.thebusybiscuit.slimefun4.core.networks.energy.EnergyNetComponentType;
+import me.justahuman.slimefun_server_essentials.recipe.RecipeExporter;
 import me.justahuman.slimefun_server_essentials.util.ReflectionUtils;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -71,5 +72,19 @@ public record InfinityLibBlock(List<Recipe> recipes, Integer energy) {
             }
             return new Recipe(inputs, new ArrayList<>(List.of(output)), time);
         }
+    }
+
+    public static boolean isInfinityLibBlock(Class<?> clazz) {
+        return clazz != null && (isInfinityLibBlockDirect(clazz) || isInfinityLibBlock(clazz.getSuperclass()));
+    }
+
+    public static boolean isInfinityLibBlockDirect(Class<?> clazz) {
+        return clazz.getSimpleName().equals("CraftingBlock") || clazz.getSimpleName().equals("MachineBlock");
+    }
+
+    public static String getLayout(SlimefunItem slimefunItem, Class<?> clazz) {
+        return isInfinityLibBlockDirect(clazz)
+                ? RecipeExporter.getLayout(clazz, slimefunItem)
+                : getLayout(slimefunItem, clazz.getSuperclass());
     }
 }

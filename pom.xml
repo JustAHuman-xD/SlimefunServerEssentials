@@ -36,7 +36,7 @@
                 <configuration>
                     <relocations>
                         <relocation>
-                            <pattern>de.tr7zw.changeme.nbtapi</pattern>
+                            <pattern>de.tr7zw.nbtapi</pattern>
                             <shadedPattern>me.justahuman.slimefun_server_essentials.nbtapi</shadedPattern>
                         </relocation>
                         <relocation>

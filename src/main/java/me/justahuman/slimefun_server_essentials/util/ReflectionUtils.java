@@ -5,7 +5,9 @@ import java.lang.reflect.Method;
 
 public class ReflectionUtils {
     public static <T> T getField(Object object, String fieldName, T defaultValue) {
-        return getField(object.getClass(), object, fieldName, defaultValue);
+        return object != null
+                ? getField(object.getClass(), object, fieldName, defaultValue)
+                : defaultValue;
     }
 
     public static <T> T getField(Class<?> clazz, Object object, String fieldName, T defaultValue) {

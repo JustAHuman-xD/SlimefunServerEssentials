@@ -4,9 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import io.github.mooy1.infinityexpansion.infinitylib.machines.CraftingBlock;
-import io.github.mooy1.infinityexpansion.infinitylib.machines.MachineBlock;
-import io.github.mooy1.infinityexpansion.infinitylib.machines.MachineLayout;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.core.attributes.RecipeDisplayItem;
 import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine;
@@ -31,21 +28,26 @@ import org.bukkit.block.Biome;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 public class RecipeExporter {
-    public static String fromLayout(Class<?> clazz, Object objectWithLayout) {
-        final MachineLayout layout = ReflectionUtils.getField(clazz, objectWithLayout, "layout", MachineLayout.MACHINE_DEFAULT);
-        if (layout == MachineLayout.CRAFTING_DEFAULT) {
-            return "grid3";
-        } else if (layout == MachineLayout.MACHINE_DEFAULT) {
+    private static final int[] MACHINE_INPUT = { 19, 20 };
+    private static final int[] MACHINE_OUTPUT = { 24, 25 };
+
+    public static String getLayout(Class<?> clazz, Object objectWithLayout) {
+        final Object layout = ReflectionUtils.getField(clazz, objectWithLayout, "layout", null);
+        final int[] inputSlots = ReflectionUtils.getField(layout, "inputSlots", new int[0]);
+        final int[] outputSlots = ReflectionUtils.getField(layout, "outputSlots", new int[0]);
+        if (layout == null
+                || (inputSlots.length == 0 || outputSlots.length == 0)
+                || (Arrays.equals(MACHINE_INPUT, inputSlots) && Arrays.equals(MACHINE_OUTPUT, outputSlots))) {
             return null;
         } else {
-            final int[] slots = layout.inputSlots();
-            final int sqrt = (int) Math.sqrt(slots.length);
-            return sqrt * sqrt == slots.length ? "grid" + sqrt : null;
+            final int sqrt = (int) Math.sqrt(inputSlots.length);
+            return sqrt * sqrt == inputSlots.length ? "grid" + sqrt : null;
         }
     }
 
@@ -149,7 +151,7 @@ public class RecipeExporter {
 
         if (matchedHook != null) {
             matchedHook.handle(category, recipes, slimefunItem);
-        } else if (slimefunItem instanceof CraftingBlock || slimefunItem instanceof MachineBlock) {
+        } else if (InfinityLibBlock.isInfinityLibBlock(slimefunItem.getClass())) {
             final InfinityLibBlock wrappedBlock = InfinityLibBlock.wrap(slimefunItem);
             for (InfinityLibBlock.Recipe recipe : wrappedBlock.recipes()) {
                 addRecipeWithOptimize(recipes, new RecipeBuilder()
@@ -162,8 +164,7 @@ public class RecipeExporter {
                 category.addProperty("energy", wrappedBlock.energy());
             }
 
-            final String type = fromLayout(slimefunItem instanceof CraftingBlock
-                    ? CraftingBlock.class : MachineBlock.class, slimefunItem);
+            final String type = InfinityLibBlock.getLayout(slimefunItem, slimefunItem.getClass());
             if (type != null) {
                 category.addProperty("type", type);
             }
