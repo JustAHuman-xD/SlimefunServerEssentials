@@ -171,9 +171,9 @@ public class SlimefunHook extends PluginHook {
             autoAbstractEnchantRecipe(slimefunItem, recipes, Material.SHIELD, 2);
         } else if (slimefunItem instanceof BookBinder) {
             add(recipes, new RecipeBuilder()
-                    .input(Utils.enchant(new ItemStack(Material.ENCHANTED_BOOK), Enchantment.DAMAGE_ALL))
-                    .input(Utils.enchant(new ItemStack(Material.ENCHANTED_BOOK), Enchantment.DURABILITY))
-                    .output(Utils.enchant(new ItemStack(Material.ENCHANTED_BOOK), Enchantment.DAMAGE_ALL, Enchantment.DURABILITY))
+                    .input(Utils.enchant(new ItemStack(Material.ENCHANTED_BOOK), Enchantment.SHARPNESS))
+                    .input(Utils.enchant(new ItemStack(Material.ENCHANTED_BOOK), Enchantment.UNBREAKING))
+                    .output(Utils.enchant(new ItemStack(Material.ENCHANTED_BOOK), Enchantment.SHARPNESS, Enchantment.UNBREAKING))
                     .sfTicks(100));
         } else if (slimefunItem instanceof ExpCollector) {
             add(recipes, new RecipeBuilder().input("$:1").output(SlimefunItems.FILLED_FLASK_OF_KNOWLEDGE).sfTicks(1));

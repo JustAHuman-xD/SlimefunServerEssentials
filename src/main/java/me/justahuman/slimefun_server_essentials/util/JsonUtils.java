@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import de.tr7zw.nbtapi.NBTItem;
+import de.tr7zw.nbtapi.NBT;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.groups.LockedItemGroup;
@@ -196,7 +196,7 @@ public class JsonUtils {
 
         final JsonObject itemObject = new JsonObject();
         itemObject.add("item", new JsonPrimitive("minecraft:" + itemStack.getType().name().toLowerCase()));
-        final String nbtString = new NBTItem(itemStack).getCompound().toString();
+        final String nbtString = NBT.readNbt(itemStack).toString();
         itemObject.add("components", new JsonPrimitive(nbtString));
         return itemObject;
     }
