@@ -11,9 +11,9 @@ import com.google.gson.JsonObject;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.blocks.BlockPosition;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.common.ChatColors;
 import me.justahuman.slimefun_server_essentials.SlimefunServerEssentials;
+import me.justahuman.slimefun_server_essentials.channels.BlockChannel;
 import me.justahuman.slimefun_server_essentials.recipe.RecipeExporter;
 import me.justahuman.slimefun_server_essentials.util.JsonUtils;
 import me.justahuman.slimefun_server_essentials.util.Utils;
@@ -28,10 +28,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Optional;
 
 @SuppressWarnings("unused")
-@CommandAlias("slimefun_server_essentials|sse")
+@CommandAlias("slimefun_server_essentials|sfse")
 public class CommandManager extends BaseCommand {
     private static final Gson GSON = new Gson().newBuilder().setPrettyPrinting().create();
     private static final String PATH = "plugins/SlimefunServerEssentials/exported/";
@@ -40,6 +39,12 @@ public class CommandManager extends BaseCommand {
     @CommandPermission("slimefun_server_essentials.block")
     @Description("Sends the Slimefun Block Packet to tell a Client a Block is a Slimefun Block, Used in Testing")
     public void block(Player player) {
+        BlockChannel channel = SlimefunServerEssentials.getBlockChannel();
+        if (channel == null) {
+            player.sendMessage(ChatColors.color("&cBlock Channel is not enabled!"));
+            return;
+        }
+
         final Block block = player.getTargetBlock(null, 8);
         final SlimefunItem slimefunItem = BlockStorage.check(block);
         if (slimefunItem == null) {
@@ -47,8 +52,7 @@ public class CommandManager extends BaseCommand {
             return;
         }
 
-        Optional.ofNullable(SlimefunServerEssentials.getBlockChannel())
-                .ifPresent(blockChannel -> blockChannel.sendSlimefunBlock(player, new BlockPosition(block), slimefunItem.getId()));
+        channel.sendSlimefunBlock(player, block.getLocation(), slimefunItem.getId());
     }
 
     @Subcommand("export_all")

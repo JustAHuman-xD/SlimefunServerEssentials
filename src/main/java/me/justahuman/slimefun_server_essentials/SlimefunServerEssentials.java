@@ -8,7 +8,6 @@ import me.justahuman.slimefun_server_essentials.channels.AddonChannel;
 import me.justahuman.slimefun_server_essentials.channels.BlockChannel;
 import me.justahuman.slimefun_server_essentials.features.CommandManager;
 import me.justahuman.slimefun_server_essentials.listeners.RegistryFinalizedListener;
-import me.justahuman.slimefun_server_essentials.recipe.compat.PluginHook;
 import me.justahuman.slimefun_server_essentials.util.Utils;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -43,6 +42,7 @@ public final class SlimefunServerEssentials extends JavaPlugin {
 
         if (getConfig().getBoolean("custom-block-textures", true)) {
             blockChannel = new BlockChannel();
+            BlockChannel.cacheBlockStorage();
         }
     }
 
