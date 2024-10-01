@@ -13,7 +13,6 @@
     <description>Exports Slimefun Recipes to Json Files</description>
 
     <build>
-        <finalName>${project.name}_v${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
