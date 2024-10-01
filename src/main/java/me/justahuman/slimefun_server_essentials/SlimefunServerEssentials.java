@@ -36,6 +36,8 @@ public final class SlimefunServerEssentials extends JavaPlugin {
         commandCompletions.registerAsyncCompletion("addons", c -> Utils.getSlimefunAddonNames());
         paperCommandManager.registerCommand(new CommandManager());
 
+        saveDefaultConfig();
+
         if (getConfig().getBoolean("automatic-addons", true)) {
             addonChannel = new AddonChannel(getConfig().getStringList("addon-blacklist"));
         }
