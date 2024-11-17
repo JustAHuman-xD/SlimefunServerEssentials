@@ -6,11 +6,11 @@
 
     <groupId>me.justahuman</groupId>
     <artifactId>SlimefunServerEssentials</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
     <packaging>jar</packaging>
 
     <name>SlimefunServerEssentials</name>
-    <description>Exports Slimefun Recipes to Json Files</description>
+    <description>Sends data from the server to clients with the SlimefunEssentials mod!</description>
 
     <build>
         <plugins>

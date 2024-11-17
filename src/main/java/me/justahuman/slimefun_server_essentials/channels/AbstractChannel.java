@@ -33,11 +33,15 @@ public abstract class AbstractChannel implements PluginMessageListener, Listener
     public void sendMessage(@Nonnull Player player, @Nonnull String message) {
         final ByteArrayDataOutput dataOutput = ByteStreams.newDataOutput();
         dataOutput.writeUTF(message);
-        sendMessage(player, dataOutput);
+        sendMessage(player, dataOutput.toByteArray());
     }
 
     public void sendMessage(@Nonnull Player player, @Nonnull ByteArrayDataOutput message) {
-        player.sendPluginMessage(SlimefunServerEssentials.getInstance(), getChannel(), message.toByteArray());
+        sendMessage(player, message.toByteArray());
+    }
+
+    public void sendMessage(@Nonnull Player player, @Nonnull byte[] message) {
+        player.sendPluginMessage(SlimefunServerEssentials.getInstance(), getChannel(), message);
     }
 
     @EventHandler

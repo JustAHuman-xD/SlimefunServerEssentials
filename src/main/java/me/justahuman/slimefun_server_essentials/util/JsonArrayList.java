@@ -7,7 +7,6 @@ import java.util.AbstractList;
 import java.util.List;
 
 final class JsonArrayList extends AbstractList<JsonElement> {
-    
     private final JsonArray jsonArray;
     
     private JsonArrayList(JsonArray jsonArray) {

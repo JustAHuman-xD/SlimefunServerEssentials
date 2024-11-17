@@ -1,8 +1,12 @@
-package me.justahuman.slimefun_server_essentials.recipe;
+package me.justahuman.slimefun_server_essentials.api;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import me.justahuman.slimefun_server_essentials.implementation.core.DefaultLabels;
 import me.justahuman.slimefun_server_essentials.util.JsonUtils;
+import org.bukkit.Fluid;
+import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
@@ -41,8 +45,28 @@ public class RecipeBuilder {
         return input(itemStack, 1);
     }
 
-    public RecipeBuilder input(ItemStack itemStack, float chance) {
-        return input(JsonUtils.process(this.complex, itemStack, chance));
+    public RecipeBuilder complexInput(ItemStack itemStack) {
+        return input(new ComplexItem(itemStack));
+    }
+
+    public RecipeBuilder input(Material material) {
+        return input(material, 1);
+    }
+
+    public RecipeBuilder input(Material material, int amount) {
+        return input(new ItemStack(material, amount));
+    }
+
+    public RecipeBuilder input(ItemStack itemStack, float consumptionChance) {
+        return input(JsonUtils.process(this.complex, itemStack, consumptionChance));
+    }
+
+    public RecipeBuilder input(EntityType entityType, boolean baby, int amount, float consumptionChance) {
+        return input("@" + (baby ? "baby_" : "") + entityType.getKey().getKey() + ":" + amount + "%" + consumptionChance);
+    }
+
+    public RecipeBuilder input(Fluid fluid, int amount) {
+        return input("~" + fluid.getKey().getKey() + ":" + amount);
     }
 
     public RecipeBuilder input(String input) {
@@ -68,16 +92,37 @@ public class RecipeBuilder {
         return this;
     }
 
+    public RecipeBuilder output(Material material) {
+        return output(material, 1);
+    }
+
+    public RecipeBuilder output(Material material, int amount) {
+        return output(new ItemStack(material, amount));
+    }
+
     public RecipeBuilder output(ItemStack itemStack) {
         return output(itemStack, 1);
     }
 
-    public RecipeBuilder output(ItemStack itemStack, float chance) {
-        return output(JsonUtils.process(this.complex, itemStack, chance));
+    public RecipeBuilder complexOutput(ItemStack itemStack) {
+        return output(new ComplexItem(itemStack));
+    }
+
+    public RecipeBuilder output(ItemStack itemStack, float productionChance) {
+        return output(JsonUtils.process(this.complex, itemStack, productionChance));
+    }
+
+    public RecipeBuilder output(EntityType entityType, boolean baby, int amount, float productionChance) {
+        return output("@" + (baby ? "baby_" : "") + entityType.getKey().getKey() + ":" + amount + "%" + productionChance);
     }
 
     public RecipeBuilder output(String output) {
         this.outputs.add(output);
+        return this;
+    }
+
+    public RecipeBuilder label(DefaultLabels label) {
+        this.labels.add(label.getLabel());
         return this;
     }
     

@@ -1,51 +1,33 @@
 package me.justahuman.slimefun_server_essentials;
 
-import co.aikar.commands.BukkitCommandCompletionContext;
-import co.aikar.commands.CommandCompletions;
-import co.aikar.commands.PaperCommandManager;
+import de.tr7zw.nbtapi.NBT;
 import lombok.Getter;
-import me.justahuman.slimefun_server_essentials.channels.AddonChannel;
-import me.justahuman.slimefun_server_essentials.channels.BlockChannel;
-import me.justahuman.slimefun_server_essentials.features.CommandManager;
+import me.justahuman.slimefun_server_essentials.channels.DataChannel;
+import me.justahuman.slimefun_server_essentials.implementation.core.DefaultCategories;
+import me.justahuman.slimefun_server_essentials.implementation.core.DefaultDisplays;
 import me.justahuman.slimefun_server_essentials.listeners.RegistryFinalizedListener;
-import me.justahuman.slimefun_server_essentials.util.Utils;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class SlimefunServerEssentials extends JavaPlugin {
-
-    @Getter
-    private static SlimefunServerEssentials instance;
-
-    @Getter
-    private static AddonChannel addonChannel = null;
-
-    @Getter
-    private static BlockChannel blockChannel = null;
+    private static @Getter SlimefunServerEssentials instance;
+    private static @Getter DataChannel dataChannel;
 
     @Override
     public void onEnable() {
+        if (!NBT.preloadApi()) {
+            getLogger().warning("NBT-API wasn't initialized properly, disabling the plugin");
+            getPluginLoader().disablePlugin(this);
+            return;
+        }
+
         instance = this;
-
+        dataChannel = new DataChannel();
         new Metrics(instance, 18206);
-
+        DefaultCategories.register();
+        DefaultDisplays.register();
         getServer().getPluginManager().registerEvents(new RegistryFinalizedListener(), this);
-
-        final PaperCommandManager paperCommandManager = new PaperCommandManager(this);
-        final CommandCompletions<BukkitCommandCompletionContext> commandCompletions = paperCommandManager.getCommandCompletions();
-        commandCompletions.registerAsyncCompletion("addons", c -> Utils.getSlimefunAddonNames());
-        paperCommandManager.registerCommand(new CommandManager());
-
         saveDefaultConfig();
-
-        if (getConfig().getBoolean("automatic-addons", true)) {
-            addonChannel = new AddonChannel(getConfig().getStringList("addon-blacklist"));
-        }
-
-        if (getConfig().getBoolean("custom-block-textures", true)) {
-            blockChannel = new BlockChannel();
-            BlockChannel.cacheBlockStorage();
-        }
     }
 
     @Override

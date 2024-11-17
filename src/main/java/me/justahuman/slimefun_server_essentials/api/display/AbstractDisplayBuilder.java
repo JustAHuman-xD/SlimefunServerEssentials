@@ -1,16 +1,16 @@
-package me.justahuman.slimefun_server_essentials.api;
+package me.justahuman.slimefun_server_essentials.api.display;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
+import me.justahuman.slimefun_server_essentials.api.ComponentBuilder;
 
 import java.util.function.Consumer;
 
 import static me.justahuman.slimefun_server_essentials.api.ComponentBuilder.Type.*;
 
-public abstract class RecipeDisplayBuilder<B extends RecipeDisplayBuilder<B>> {
+public abstract class AbstractDisplayBuilder<B extends AbstractDisplayBuilder<B>> {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     protected final JsonArray components = new JsonArray();
     protected int padding = 4;
@@ -60,9 +60,9 @@ public abstract class RecipeDisplayBuilder<B extends RecipeDisplayBuilder<B>> {
         return (B) this;
     }
 
-    public JsonObject build(RecipeType recipeType) {
+    public JsonObject build(String type) {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("type", recipeType.getKey().toString());
+        jsonObject.addProperty("type", type);
         jsonObject.add("components", components);
         return jsonObject;
     }

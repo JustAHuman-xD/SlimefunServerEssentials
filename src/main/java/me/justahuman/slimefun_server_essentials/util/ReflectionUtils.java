@@ -21,6 +21,17 @@ public class ReflectionUtils {
         }
     }
 
+    public static <T> T getStaticField(Class<?> clazz, String fieldName, T defaultValue) {
+        try {
+            final Field field = clazz.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return (T) field.get(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return defaultValue;
+        }
+    }
+
     public static <R> R callMethod(Object object, String methodName, R defaultValue, Class<?>[] paramTypes, Object[] args) {
         return callMethod(object.getClass(), object, methodName, defaultValue, paramTypes, args);
     }

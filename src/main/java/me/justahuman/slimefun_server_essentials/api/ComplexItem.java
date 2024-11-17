@@ -1,4 +1,4 @@
-package me.justahuman.slimefun_server_essentials.recipe.compat.misc;
+package me.justahuman.slimefun_server_essentials.api;
 
 import org.bukkit.inventory.ItemStack;
 

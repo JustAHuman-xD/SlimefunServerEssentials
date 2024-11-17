@@ -3,7 +3,7 @@ version: '${project.version}'
 main: me.justahuman.slimefun_server_essentials.SlimefunServerEssentials
 api-version: 1.19
 prefix: SFSE
-depend: [ Slimefun ]
+depend: [ NBTAPI, Slimefun ]
 authors: [ JustAHuman ]
 description: Exports Slimefun Recipes to Json Files & provides support for many features of the Slimefun Essentials Mod
 permissions:

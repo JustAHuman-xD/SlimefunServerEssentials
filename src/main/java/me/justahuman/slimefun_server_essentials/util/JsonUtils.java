@@ -5,20 +5,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import de.tr7zw.nbtapi.NBT;
-import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
-import io.github.thebusybiscuit.slimefun4.api.items.groups.LockedItemGroup;
-import io.github.thebusybiscuit.slimefun4.api.items.groups.NestedItemGroup;
-import io.github.thebusybiscuit.slimefun4.api.items.groups.SeasonalItemGroup;
-import io.github.thebusybiscuit.slimefun4.api.items.groups.SubItemGroup;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.items.VanillaItem;
-import me.justahuman.slimefun_server_essentials.recipe.compat.misc.ComplexItem;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.Pair;
+import me.justahuman.slimefun_server_essentials.api.ComplexItem;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class JsonUtils {
@@ -124,7 +121,7 @@ public class JsonUtils {
         final SlimefunItem slimefunItem = SlimefunItem.getByItem(itemStack);
         if (!slimefunId.isBlank() && !(slimefunItem instanceof VanillaItem) && !(itemStack instanceof ComplexItem)) {
             processed.append(slimefunId);
-        } else if (itemStack instanceof ComplexItem || (slimefunItem == null && itemStack.hasItemMeta() && (itemStack.getItemMeta().hasDisplayName() || itemStack.getItemMeta().hasLore()))) {
+        } else if (itemStack instanceof ComplexItem || (slimefunItem == null && !itemStack.equals(new ItemStack(itemStack.getType())))) {
             processed.append('?').append(complexStacks.size());
             complexStacks.add(serializeItem(itemStack));
             complex = true;
@@ -214,57 +211,112 @@ public class JsonUtils {
 
     public static void addArray(JsonObject jsonObject, String key, JsonArray array) {
         removeWhitespace(array);
-        if (array.isEmpty()) {
-            return;
+        if (!array.isEmpty()) {
+            jsonObject.add(key, array.size() == 1 ? array.get(0) : array);
         }
-
-        jsonObject.add(key, array.size() == 1
-                ? array.get(0)
-                : array);
     }
 
-    public static JsonObject serializeItemGroup(ItemGroup itemGroup) {
-        final JsonObject groupObject = new JsonObject();
-        final JsonArray items = new JsonArray();
-        groupObject.add("item", serializeItem(ReflectionUtils.getField(ItemGroup.class, itemGroup, "item", new ItemStack(Material.AIR))));
-        for (SlimefunItem slimefunItem : itemGroup.getItems()) {
-            items.add(slimefunItem.getId());
+    public static void addRecipeWithOptimize(JsonArray recipes, JsonObject recipeObject) {
+        removeWhitespace(recipeObject);
+        final OptimizedRecipe optimizedRecipe = optimizeRecipe(recipes, recipeObject);
+        if (optimizedRecipe != null) {
+            recipes.set(optimizedRecipe.index, optimizedRecipe.recipe);
+        } else {
+            recipes.add(recipeObject);
         }
-
-        if (!items.isEmpty()) {
-            groupObject.add("items", items);
-        }
-
-        if (itemGroup instanceof NestedItemGroup nestedGroup) {
-            final JsonArray children = new JsonArray();
-            for (ItemGroup child : Utils.getSubItemGroups(nestedGroup)) {
-                children.add(child.getKey().toString());
-            }
-
-            if (!children.isEmpty()) {
-                groupObject.add("nested", children);
-            }
-        }
-
-        if (itemGroup instanceof LockedItemGroup lockedGroup) {
-            final JsonArray parents = new JsonArray();
-            for (ItemGroup parent : lockedGroup.getParents()) {
-                parents.add(parent.getKey().toString());
-            }
-
-            if (!parents.isEmpty()) {
-                groupObject.add("locked", parents);
-            }
-        }
-
-        if (itemGroup instanceof SeasonalItemGroup seasonalGroup) {
-            groupObject.addProperty("seasonal", seasonalGroup.getMonth().getValue());
-        }
-
-        if (itemGroup instanceof SubItemGroup) {
-            groupObject.addProperty("sub", true);
-        }
-
-        return groupObject;
     }
+
+    /**
+     * Attempts to optimize a Recipe {@link JsonObject} by merging it with another Recipe {@link JsonObject}
+     * @param recipe1 The Recipe {@link JsonObject} to optimize
+     * @param recipes The Recipes {@link JsonArray} to search for a match
+     * @return {@link Pair} with the {@link Pair#getFirstValue()} being the index and the {@link Pair#getSecondValue()} being the optimized Recipe {@link JsonObject}
+     */
+    private static OptimizedRecipe optimizeRecipe(JsonArray recipes, JsonObject recipe1) {
+        final JsonArray complex1 = getArray(recipe1, "complex", new JsonArray());
+        final JsonArray inputs1 = getArray(recipe1, "inputs", new JsonArray());
+        final JsonArray outputs1 = getArray(recipe1, "outputs", new JsonArray());
+        final JsonArray labels1 = getArray(recipe1, "labels", new JsonArray());
+        final Integer time1 = getInt(recipe1, "time", null);
+        final Integer energy1 = getInt(recipe1, "energy", null);
+
+        for (int index = 0; index < recipes.size(); index++) {
+            // This should always evaluate to false this is just an instanceof cast
+            if (!(recipes.get(index) instanceof JsonObject recipe2)) {
+                continue;
+            }
+
+            final JsonArray complex2 = getArray(recipe2, "complex", new JsonArray());
+            final JsonArray inputs2 = getArray(recipe2, "inputs", new JsonArray());
+            final JsonArray outputs2 = getArray(recipe2, "outputs", new JsonArray());
+            final JsonArray labels2 = getArray(recipe2, "labels", new JsonArray());
+            final Integer time2 = getInt(recipe2, "time", null);
+            final Integer energy2 = getInt(recipe1, "energy", null);
+
+            if (!Objects.equals(time1, time2) || !Objects.equals(energy1, energy2)) {
+                continue;
+            }
+
+            boolean canMerge = complex1.equals(complex2)
+                    && labels1.equals(labels2)
+                    && inputs1.size() == inputs2.size()
+                    && outputs1.equals(outputs2);
+
+            if (!canMerge) {
+                continue;
+            }
+
+            boolean singleDifference = false;
+            // Then we go through inputs, we can allow for a single difference as those are what will be merged
+            for (int inputIndex = 0; inputIndex < inputs1.size(); inputIndex++) {
+                if (!canMerge) {
+                    break;
+                }
+
+                final String input1 = inputs1.get(inputIndex).getAsString();
+                final String input2 = inputs2.get(inputIndex).getAsString();
+
+                canMerge = input1.equals(input2) || input1.contains(input2) || input2.contains(input1);
+                // We can allow for a single difference in the Inputs as that is the Point of Merging
+                if (!canMerge && !singleDifference && equalAmount(input1, input2)) {
+                    canMerge = true;
+                    singleDifference = true;
+                }
+            }
+
+            if (!canMerge) {
+                continue;
+            }
+
+            // At this point we have confirmed that these 2 recipes can be merged, so let's do that.
+            final JsonObject recipe3 = new JsonObject();
+            final JsonArray inputs3 = new JsonArray();
+            final JsonArray complex3 = complex1.deepCopy();
+            final JsonArray labels3 = labels1.deepCopy();
+            final JsonArray outputs3 = outputs1.deepCopy();
+
+            for (int inputIndex = 0; inputIndex < inputs1.size(); inputIndex++) {
+                final JsonElement inputElement1 = inputs1.get(inputIndex);
+                final JsonElement inputElement2 = inputs2.size() - 1 < inputIndex ? new JsonPrimitive("") : inputs2.get(inputIndex);
+                if (inputElement1.equals(inputElement2)) {
+                    inputs3.add(inputElement1);
+                } else {
+                    inputs3.add(inputElement1.getAsString() + "," + inputElement2.getAsString());
+                }
+            }
+
+            if (time1 != null) {
+                recipe3.addProperty("time", time1);
+            }
+
+            addArray(recipe3, "complex", complex3);
+            addArray(recipe3, "inputs", inputs3);
+            addArray(recipe3, "outputs", outputs3);
+            addArray(recipe3, "labels", labels3);
+            return new OptimizedRecipe(index, recipe3);
+        }
+        return null;
+    }
+
+    private record OptimizedRecipe(int index, JsonObject recipe) {}
 }
