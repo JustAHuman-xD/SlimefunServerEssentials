@@ -17,6 +17,6 @@ public class RegistryFinalizedListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        SlimefunServerEssentials.getDataChannel().onRegisterConnection(player);
+        SlimefunServerEssentials.getRecipeDisplaysChannel().onRegisterConnection(player);
     }
 }

@@ -22,12 +22,12 @@ public class RecipeCategoryExporters {
         if (itemExporter != null) {
             RecipeCategoryBuilder builder = new RecipeCategoryBuilder();
             itemExporter.accept(slimefunItem, builder);
-            return builder.build();
+            return builder.isEmpty() ? null : builder.build();
         }
 
         for (ItemRecipeCategoryExporter<? extends SlimefunItem> classExporter : ITEM_CLASS_EXPORTERS) {
             RecipeCategoryBuilder exported = classExporter.tryExport(slimefunItem);
-            if (exported != null) {
+            if (exported != null && !exported.isEmpty()) {
                 return exported.build();
             }
         }

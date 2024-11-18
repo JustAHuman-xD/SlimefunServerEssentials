@@ -2,7 +2,7 @@ package me.justahuman.slimefun_server_essentials;
 
 import de.tr7zw.nbtapi.NBT;
 import lombok.Getter;
-import me.justahuman.slimefun_server_essentials.channels.DataChannel;
+import me.justahuman.slimefun_server_essentials.channels.RecipeDisplaysChannel;
 import me.justahuman.slimefun_server_essentials.implementation.core.DefaultCategories;
 import me.justahuman.slimefun_server_essentials.implementation.core.DefaultDisplays;
 import me.justahuman.slimefun_server_essentials.listeners.RegistryFinalizedListener;
@@ -11,7 +11,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class SlimefunServerEssentials extends JavaPlugin {
     private static @Getter SlimefunServerEssentials instance;
-    private static @Getter DataChannel dataChannel;
+    private static @Getter RecipeDisplaysChannel recipeDisplaysChannel;
 
     @Override
     public void onEnable() {
@@ -22,7 +22,7 @@ public final class SlimefunServerEssentials extends JavaPlugin {
         }
 
         instance = this;
-        dataChannel = new DataChannel();
+        recipeDisplaysChannel = new RecipeDisplaysChannel();
         new Metrics(instance, 18206);
         DefaultCategories.register();
         DefaultDisplays.register();

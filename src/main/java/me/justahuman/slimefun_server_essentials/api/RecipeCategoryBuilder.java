@@ -38,9 +38,15 @@ public class RecipeCategoryBuilder {
     public JsonObject build() {
         JsonObject category = new JsonObject();
         JsonUtils.sortJsonArray(recipes);
-        category.addProperty("speed", this.speed);
-        category.addProperty("energy", this.energy);
-        category.addProperty("display", this.display);
+        if (speed != -1) {
+            category.addProperty("speed", this.speed);
+        }
+        if (energy != -1) {
+            category.addProperty("energy", this.energy);
+        }
+        if (display != null) {
+            category.addProperty("display", this.display);
+        }
         category.add("recipes", recipes.size() == 1 ? recipes.get(0) : recipes);
         return category;
     }
