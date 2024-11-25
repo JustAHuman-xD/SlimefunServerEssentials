@@ -122,7 +122,7 @@ public class RecipeBuilder {
     }
 
     public RecipeBuilder label(DefaultLabels label) {
-        this.labels.add(label.getLabel());
+        this.labels.add(label.id());
         return this;
     }
     

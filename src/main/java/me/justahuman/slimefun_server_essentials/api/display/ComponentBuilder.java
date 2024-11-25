@@ -8,21 +8,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ComponentBuilder {
-    // All Component properties
     protected ComponentType type = null;
+    protected boolean output = false;
+    protected int index = -1;
     protected int x = -1;
     protected int y = -1;
     protected int height = -1;
     protected int width = -1;
     protected boolean dynamic = true;
     protected final List<String> tooltip = new ArrayList<>();
-    // Label & Custom Properties
-    protected String texture = null;
+    protected Texture texture = null;
 
     public ComponentBuilder type(ComponentType type) {
         this.type = type;
         this.width = type.width();
         this.height = type.height();
+        return this;
+    }
+
+    public ComponentBuilder output() {
+        this.output = true;
+        return this;
+    }
+
+    public ComponentBuilder index(int index) {
+        this.index = index;
         return this;
     }
 
@@ -57,7 +67,7 @@ public class ComponentBuilder {
         return this;
     }
 
-    public ComponentBuilder texture(String texture) {
+    public ComponentBuilder texture(Texture texture) {
         this.texture = texture;
         return this;
     }
@@ -84,6 +94,11 @@ public class ComponentBuilder {
         }
 
         component.addProperty("type", type.name());
+        component.addProperty("output", true);
+        if (index != -1) {
+            component.addProperty("index", index);
+        }
+
         component.addProperty("x", x);
         component.addProperty("y", y);
 
@@ -95,16 +110,11 @@ public class ComponentBuilder {
             component.add("tooltip", tooltip);
         }
 
-        if (type == ComponentType.LABEL) {
-            if (texture == null || texture.isBlank()) {
-                throw new IllegalArgumentException("Missing textures! (required for Type.LABEL)");
-            }
-            component.addProperty("texture", texture);
-        } else if (type == ComponentType.CUSTOM) {
-            if (texture == null || texture.isBlank() || height == -1 || width == -1) {
+        if (type == ComponentType.CUSTOM) {
+            if (texture == null || height == -1 || width == -1) {
                 throw new IllegalArgumentException("Missing one or more required properties for Type.CUSTOM! (texture: %s, height: %s, width: %s)".formatted(texture, height, width));
             }
-            component.addProperty("texture", texture);
+            component.add("texture", texture.toJson());
             component.addProperty("height", height);
             component.addProperty("width", width);
         }

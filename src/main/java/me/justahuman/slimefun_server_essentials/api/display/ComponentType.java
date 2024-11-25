@@ -8,7 +8,6 @@ public enum ComponentType {
     ARROW_LEFT(24, 17),
     FILLING_ARROW_RIGHT(24, 17),
     FILLING_ARROW_LEFT(24, 17),
-    LABEL,
     CUSTOM;
 
     public static final int PADDING = 4;

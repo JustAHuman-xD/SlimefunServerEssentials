@@ -54,7 +54,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 
 import java.util.ArrayList;
@@ -74,8 +73,13 @@ public class DefaultCategories {
     private static final ItemStack TREE_OUTPUT = new CustomItemStack(Material.OAK_SAPLING, "&eAge 1 Sapling");
     private static final ItemStack CROP_INPUT = new CustomItemStack(Material.POTATO, "&eStage 0 Growth");
     private static final ItemStack CROP_OUTPUT = new CustomItemStack(Material.POTATO, "&eStage 1 Growth");
+    private static boolean registered = false;
 
     public static void register() {
+        if (registered) {
+            return;
+        }
+        registered = true;
         registerItemExporter(MultiBlockMachine.class, (multiblock, builder) -> {
             // Slimefun saves it as Input, Output, Input, Output, So we skip on the Outputs
             ItemStack[] inputs = null;
@@ -235,7 +239,7 @@ public class DefaultCategories {
                 for (Material modifier : modifiers) {
                     final ItemStack itemStack = new ItemStack(potion);
                     final PotionMeta potionMeta = (PotionMeta) itemStack.getItemMeta();
-                    potionMeta.setBasePotionData(new PotionData(PotionType.WATER));
+                    potionMeta.setBasePotionType(PotionType.WATER);
                     itemStack.setItemMeta(potionMeta);
 
                     final Class<?>[] paramTypes = {Material.class, Material.class, PotionMeta.class};

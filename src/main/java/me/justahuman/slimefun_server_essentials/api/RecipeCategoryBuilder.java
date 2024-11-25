@@ -20,7 +20,7 @@ public class RecipeCategoryBuilder {
     }
 
     public void display(DefaultDisplays display) {
-        this.display = display.type();
+        this.display = display.id();
     }
 
     public void display(String display) {

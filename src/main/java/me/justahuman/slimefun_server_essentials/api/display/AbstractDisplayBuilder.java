@@ -70,11 +70,11 @@ public abstract class AbstractDisplayBuilder<B extends AbstractDisplayBuilder<B>
         jsonObject.addProperty("height", height);
 
         if (fixedX) {
-            jsonObject.addProperty("fixedX", true);
+            jsonObject.addProperty("fixed_x", true);
         }
 
         if (fixedY) {
-            jsonObject.addProperty("fixedY", true);
+            jsonObject.addProperty("fixed_y", true);
         }
 
         return jsonObject;
