@@ -128,6 +128,16 @@ public class Utils {
         return set;
     }
 
+    public static <N extends Number> N max(N... numbers) {
+        N max = null;
+        for (N number : numbers) {
+            if (max == null || number.floatValue() > max.floatValue()) {
+                max = number;
+            }
+        }
+        return max;
+    }
+
     public static void log(String log) {
         SlimefunServerEssentials.getInstance().getLogger().info(log);
     }

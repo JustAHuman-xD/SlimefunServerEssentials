@@ -1,30 +1,29 @@
 package me.justahuman.slimefun_server_essentials.api.display;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import me.justahuman.slimefun_server_essentials.api.ComponentBuilder;
 
 import java.util.function.Consumer;
 
-import static me.justahuman.slimefun_server_essentials.api.ComponentBuilder.Type.*;
+import static me.justahuman.slimefun_server_essentials.api.display.ComponentType.*;
 
 public abstract class AbstractDisplayBuilder<B extends AbstractDisplayBuilder<B>> {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     protected final JsonArray components = new JsonArray();
-    protected int padding = 4;
+    protected boolean fixedX = false;
+    protected boolean fixedY = false;
+    protected int width = -1;
+    protected int height = -1;
     
     public B energy(Consumer<ComponentBuilder> properties) {
-        return component(properties.andThen(builder -> builder.type(ENERGY)));
+        return component(properties, ENERGY);
     }
 
-    public B input(Consumer<ComponentBuilder> properties) {
-        return component(properties.andThen(builder -> builder.type(INPUT)));
+    public B slot(Consumer<ComponentBuilder> properties) {
+        return component(properties, SLOT);
     }
     
-    public B output(Consumer<ComponentBuilder> properties) {
-        return component(properties.andThen(builder -> builder.type(OUTPUT)));
+    public B largeSlot(Consumer<ComponentBuilder> properties) {
+        return component(properties, LARGE_SLOT);
     }
     
     public B arrowRight(Consumer<ComponentBuilder> properties) {
@@ -44,8 +43,12 @@ public abstract class AbstractDisplayBuilder<B extends AbstractDisplayBuilder<B>
     }
     
     protected B arrow(boolean left, boolean filling, Consumer<ComponentBuilder> properties) {
-        ComponentBuilder.Type type = left ? (filling ? FILLING_ARROW_LEFT : ARROW_LEFT) : (filling ? ComponentBuilder.Type.FILLING_ARROW_RIGHT : ComponentBuilder.Type.ARROW_RIGHT);
-        return component(properties.andThen(builder -> builder.type(type)));
+        ComponentType type = left ? (filling ? FILLING_ARROW_LEFT : ARROW_LEFT) : (filling ? FILLING_ARROW_RIGHT : ARROW_RIGHT);
+        return component(properties, type);
+    }
+
+    protected B component(Consumer<ComponentBuilder> properties, ComponentType type) {
+        return component(((Consumer<ComponentBuilder>) (builder -> builder.type(type))).andThen(properties));
     }
 
     public B component(Consumer<ComponentBuilder> properties) {
@@ -55,15 +58,25 @@ public abstract class AbstractDisplayBuilder<B extends AbstractDisplayBuilder<B>
         return (B) this;
     }
 
-    public B setPadding(int padding) {
-        this.padding = padding;
-        return (B) this;
-    }
-
     public JsonObject build(String type) {
+        if (type.isBlank() || width == -1 || height == -1) {
+            throw new IllegalArgumentException();
+        }
+
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("type", type);
         jsonObject.add("components", components);
+        jsonObject.addProperty("width", width);
+        jsonObject.addProperty("height", height);
+
+        if (fixedX) {
+            jsonObject.addProperty("fixedX", true);
+        }
+
+        if (fixedY) {
+            jsonObject.addProperty("fixedY", true);
+        }
+
         return jsonObject;
     }
 }
