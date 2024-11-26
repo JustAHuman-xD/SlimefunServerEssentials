@@ -3,7 +3,7 @@ package me.justahuman.slimefun_server_essentials.api.display;
 import me.justahuman.slimefun_server_essentials.api.OffsetBuilder;
 import me.justahuman.slimefun_server_essentials.util.Utils;
 
-import static me.justahuman.slimefun_server_essentials.api.display.ComponentType.*;
+import static me.justahuman.slimefun_server_essentials.implementation.core.DefaultComponentTypes.*;
 
 public class GridDisplayBuilder extends AbstractDisplayBuilder<GridDisplayBuilder> {
     public GridDisplayBuilder(int inputRows, int inputColumns, int outputRows, int outputColumns) {
@@ -18,7 +18,7 @@ public class GridDisplayBuilder extends AbstractDisplayBuilder<GridDisplayBuilde
 
         for (int r = 0; r < inputRows; r++) {
             for (int c = 0; c < inputColumns; c++) {
-                slot(slot -> slot.pos(offsets).dynamic(false));
+                slot(slot -> slot.pos(offsets));
                 offsets.y().addSlot(false);
             }
             offsets.y().subtract(SLOT.size() * inputColumns);
@@ -31,14 +31,13 @@ public class GridDisplayBuilder extends AbstractDisplayBuilder<GridDisplayBuilde
 
         for (int r = 0; r < inputRows; r++) {
             for (int c = 0; c < inputColumns; c++) {
-                slot(slot -> slot.pos(offsets).dynamic(false).output());
+                slot(slot -> slot.pos(offsets).output());
                 offsets.y().addSlot(false);
             }
             offsets.y().subtract(SLOT.size() * inputColumns);
             offsets.x().addSlot(false);
         }
 
-        this.fixedY = true;
         this.width = offsets.x().max();
         this.height = offsets.y().max();
     }

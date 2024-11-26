@@ -5,7 +5,7 @@ import lombok.Getter;
 import me.justahuman.slimefun_server_essentials.channels.ItemsChannel;
 import me.justahuman.slimefun_server_essentials.channels.RecipeCategoriesChannel;
 import me.justahuman.slimefun_server_essentials.channels.RecipeDisplaysChannel;
-import me.justahuman.slimefun_server_essentials.channels.RecipeLabelsChannel;
+import me.justahuman.slimefun_server_essentials.channels.ComponentTypesChannel;
 import me.justahuman.slimefun_server_essentials.implementation.core.DefaultCategories;
 import me.justahuman.slimefun_server_essentials.implementation.core.DefaultDisplays;
 import me.justahuman.slimefun_server_essentials.listeners.RegistryFinalizedListener;
@@ -17,7 +17,7 @@ public final class SlimefunServerEssentials extends JavaPlugin {
     private static @Getter ItemsChannel itemsChannel;
     private static @Getter RecipeCategoriesChannel recipeCategoriesChannel;
     private static @Getter RecipeDisplaysChannel recipeDisplaysChannel;
-    private static @Getter RecipeLabelsChannel recipeLabelsChannel;
+    private static @Getter ComponentTypesChannel componentTypesChannel;
 
     @Override
     public void onEnable() {
@@ -31,7 +31,7 @@ public final class SlimefunServerEssentials extends JavaPlugin {
         itemsChannel = new ItemsChannel();
         recipeDisplaysChannel = new RecipeDisplaysChannel();
         recipeCategoriesChannel = new RecipeCategoriesChannel();
-        recipeLabelsChannel = new RecipeLabelsChannel();
+        componentTypesChannel = new ComponentTypesChannel();
         new Metrics(instance, 18206);
         DefaultCategories.register();
         DefaultDisplays.register();

@@ -66,6 +66,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static me.justahuman.slimefun_server_essentials.implementation.RecipeCategoryExporters.registerItemExporter;
 import static me.justahuman.slimefun_server_essentials.implementation.RecipeCategoryExporters.registerTypeExporter;
+import static me.justahuman.slimefun_server_essentials.implementation.core.DefaultComponentTypes.*;
 
 public class DefaultCategories {
     private static final ThreadLocalRandom RANDOM = ThreadLocalRandom.current();
@@ -80,6 +81,7 @@ public class DefaultCategories {
             return;
         }
         registered = true;
+
         registerItemExporter(MultiBlockMachine.class, (multiblock, builder) -> {
             // Slimefun saves it as Input, Output, Input, Output, So we skip on the Outputs
             ItemStack[] inputs = null;
@@ -134,8 +136,8 @@ public class DefaultCategories {
             }
         });
         registerItemExporter(SolarGenerator.class, (generator, builder) -> {
-            builder.recipe(new RecipeBuilder().sfTicks(1).energy(generator.getDayEnergy()).label(DefaultLabels.REQUIRES_DAY));
-            builder.recipe(new RecipeBuilder().sfTicks(1).energy(generator.getNightEnergy()).label(DefaultLabels.REQUIRES_NIGHT));
+            builder.recipe(new RecipeBuilder().sfTicks(1).energy(generator.getDayEnergy()).label(REQUIRES_DAY));
+            builder.recipe(new RecipeBuilder().sfTicks(1).energy(generator.getNightEnergy()).label(REQUIRES_NIGHT));
         });
         registerItemExporter(GoldPan.class, (pan, builder) -> {
             for (Material input : pan.getInputMaterials()) {

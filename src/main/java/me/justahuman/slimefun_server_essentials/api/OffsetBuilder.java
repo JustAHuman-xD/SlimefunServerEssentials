@@ -2,6 +2,8 @@ package me.justahuman.slimefun_server_essentials.api;
 
 import me.justahuman.slimefun_server_essentials.api.display.ComponentType;
 
+import static me.justahuman.slimefun_server_essentials.implementation.core.DefaultComponentTypes.*;
+
 public class OffsetBuilder {
     protected Offset xOffset;
     protected Offset yOffset;
@@ -84,7 +86,7 @@ public class OffsetBuilder {
         }
 
         public Offset addLabel(boolean padding) {
-            this.value += 14 + (padding ? ComponentType.PADDING : 0);
+            this.value += 14 + (padding ? PADDING : 0);
             return this;
         }
 
@@ -93,7 +95,7 @@ public class OffsetBuilder {
         }
 
         public Offset addEnergy(boolean padding) {
-            this.value += ComponentType.ENERGY.size(this.y) + (padding ? ComponentType.PADDING : 0);
+            this.value += ENERGY.size(this.y) + (padding ? PADDING : 0);
             return this;
         }
 
@@ -102,7 +104,7 @@ public class OffsetBuilder {
         }
 
         public Offset addSlot(boolean padding) {
-            this.value += ComponentType.SLOT.size(this.y) + (padding ? ComponentType.PADDING : 0);
+            this.value += SLOT.size(this.y) + (padding ? PADDING : 0);
             return this;
         }
 
@@ -111,7 +113,7 @@ public class OffsetBuilder {
         }
 
         public Offset addArrow(boolean padding) {
-            this.value += ComponentType.ARROW_LEFT.size(this.y) + (padding ? ComponentType.PADDING : 0);
+            this.value += ARROW_LEFT.size(this.y) + (padding ? PADDING : 0);
             return this;
         }
 
@@ -120,12 +122,12 @@ public class OffsetBuilder {
         }
 
         public Offset addLargeSlot(boolean padding) {
-            this.value += ComponentType.LARGE_SLOT.width() + (padding ? ComponentType.PADDING : 0);
+            this.value += LARGE_SLOT.width() + (padding ? PADDING : 0);
             return this;
         }
 
         public Offset addPadding() {
-            this.value += ComponentType.PADDING;
+            this.value += PADDING;
             return this;
         }
     }

@@ -1,0 +1,40 @@
+package me.justahuman.slimefun_server_essentials.api;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
+public record Condition(String property, String condition, String value) {
+    public static final String PROPERTY_TIME = "%time%";
+    public static final String PROPERTY_ENERGY = "%energy%";
+    public static final String PROPERTY_INPUTS = "%inputs%";
+    public static final String PROPERTY_OUTPUTS = "%outputs%";
+
+    public static final String CONDITION_GREATER = ">";
+    public static final String CONDITION_GREATER_EQUALS = ">=";
+    public static final String CONDITION_LESS = "<";
+    public static final String CONDITION_LESS_EQUALS = "<=";
+    public static final String CONDITION_EQUALS = "=";
+    public static final String CONDITION_NOT_EQUALS = "!=";
+
+    public static final Condition TRUE = new Condition("", "", "");
+    public static final Condition FALSE = new Condition("", "", "");
+
+    public Condition(String property, String condition, Number value) {
+        this(property, condition, String.valueOf(value));
+    }
+
+    public JsonElement toJson() {
+        if (this == TRUE) {
+            return new JsonPrimitive(true);
+        } else if (this == FALSE) {
+            return new JsonPrimitive(false);
+        }
+
+        JsonObject json = new JsonObject();
+        json.addProperty("property", this.property);
+        json.addProperty("condition", this.condition);
+        json.addProperty("value", this.value);
+        return json;
+    }
+}

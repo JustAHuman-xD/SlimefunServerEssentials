@@ -1,46 +1,67 @@
 package me.justahuman.slimefun_server_essentials.api.display;
 
-public enum ComponentType {
-    ENERGY(7, 9),
-    SLOT(18),
-    LARGE_SLOT(26),
-    ARROW_RIGHT(24, 17),
-    ARROW_LEFT(24, 17),
-    FILLING_ARROW_RIGHT(24, 17),
-    FILLING_ARROW_LEFT(24, 17),
-    CUSTOM;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import me.justahuman.slimefun_server_essentials.implementation.DisplayComponentTypes;
 
-    public static final int PADDING = 4;
+import java.util.ArrayList;
+import java.util.List;
 
-    private final int width;
-    private final int height;
+public class ComponentType {
+    protected final String id;
+    protected final CustomRenderable light;
+    protected final CustomRenderable dark;
+    protected final List<String> tooltip = new ArrayList<>();
+    private boolean registered = false;
 
-    ComponentType(int width, int height) {
-        this.width = width;
-        this.height = height;
+    public ComponentType(String id, CustomRenderable light, CustomRenderable dark) {
+        this.id = id;
+        this.light = light;
+        this.dark = dark;
     }
 
-    ComponentType(int size) {
-        this(size, size);
-    }
-
-    ComponentType() {
-        this(-1, -1);
+    public String id() {
+        return this.id;
     }
 
     public int size() {
-        return size(false);
+        return width();
     }
 
     public int size(boolean y) {
-        return y ? height : width;
+        return y ? height() : width();
     }
 
     public int width() {
-        return width;
+        return Math.max(this.light.width(), this.dark.width());
     }
 
     public int height() {
-        return height;
+        return Math.max(this.light.height(), this.dark.height());
+    }
+
+    public void addTooltip(String tooltip) {
+        this.tooltip.add(tooltip);
+    }
+
+    public JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("id", this.id);
+        json.add("light", this.light.toJson());
+        json.add("dark", this.dark.toJson());
+        if (!this.tooltip.isEmpty()) {
+            JsonArray tooltip = new JsonArray();
+            this.tooltip.forEach(tooltip::add);
+            json.add("tooltip", tooltip);
+        }
+        return json;
+    }
+
+    public ComponentType register() {
+        if (!this.registered) {
+            DisplayComponentTypes.register(this.id, this.toJson());
+            this.registered = true;
+        }
+        return this;
     }
 }

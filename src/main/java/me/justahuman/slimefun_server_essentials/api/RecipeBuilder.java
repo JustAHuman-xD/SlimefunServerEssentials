@@ -2,7 +2,7 @@ package me.justahuman.slimefun_server_essentials.api;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import me.justahuman.slimefun_server_essentials.implementation.core.DefaultLabels;
+import me.justahuman.slimefun_server_essentials.api.display.ComponentType;
 import me.justahuman.slimefun_server_essentials.util.JsonUtils;
 import org.bukkit.Fluid;
 import org.bukkit.Material;
@@ -121,7 +121,7 @@ public class RecipeBuilder {
         return this;
     }
 
-    public RecipeBuilder label(DefaultLabels label) {
+    public RecipeBuilder label(ComponentType label) {
         this.labels.add(label.id());
         return this;
     }

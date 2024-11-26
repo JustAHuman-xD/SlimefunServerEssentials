@@ -5,12 +5,10 @@ import com.google.gson.JsonObject;
 
 import java.util.function.Consumer;
 
-import static me.justahuman.slimefun_server_essentials.api.display.ComponentType.*;
+import static me.justahuman.slimefun_server_essentials.implementation.core.DefaultComponentTypes.*;
 
 public abstract class AbstractDisplayBuilder<B extends AbstractDisplayBuilder<B>> {
     protected final JsonArray components = new JsonArray();
-    protected boolean fixedX = false;
-    protected boolean fixedY = false;
     protected int width = -1;
     protected int height = -1;
     
@@ -58,24 +56,15 @@ public abstract class AbstractDisplayBuilder<B extends AbstractDisplayBuilder<B>
         return (B) this;
     }
 
-    public JsonObject build(String type) {
-        if (type.isBlank() || width == -1 || height == -1) {
+    public JsonObject build() {
+        if (width == -1 || height == -1) {
             throw new IllegalArgumentException();
         }
 
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("type", type);
         jsonObject.add("components", components);
         jsonObject.addProperty("width", width);
         jsonObject.addProperty("height", height);
-
-        if (fixedX) {
-            jsonObject.addProperty("fixed_x", true);
-        }
-
-        if (fixedY) {
-            jsonObject.addProperty("fixed_y", true);
-        }
 
         return jsonObject;
     }

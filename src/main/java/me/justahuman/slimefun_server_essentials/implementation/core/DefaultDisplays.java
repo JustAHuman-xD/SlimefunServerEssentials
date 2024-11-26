@@ -6,12 +6,12 @@ import me.justahuman.slimefun_server_essentials.api.OffsetBuilder;
 import me.justahuman.slimefun_server_essentials.api.display.AbstractDisplayBuilder;
 import me.justahuman.slimefun_server_essentials.api.display.GridDisplayBuilder;
 import me.justahuman.slimefun_server_essentials.api.display.RecipeDisplayBuilder;
-import me.justahuman.slimefun_server_essentials.api.display.Texture;
+import me.justahuman.slimefun_server_essentials.api.display.SimpleRenderable;
 import me.justahuman.slimefun_server_essentials.implementation.RecipeDisplays;
 
 import java.util.function.Supplier;
 
-import static me.justahuman.slimefun_server_essentials.api.display.ComponentType.*;
+import static me.justahuman.slimefun_server_essentials.implementation.core.DefaultComponentTypes.*;
 
 public enum DefaultDisplays {
     ANCIENT_ALTAR("ancient_altar", () -> {
@@ -22,19 +22,19 @@ public enum DefaultDisplays {
                 PADDING + SLOT.size() * 5 + PADDING
         );
 
-        builder.fixedX(true).fixedY(true).width(offsets.x().max()).height(offsets.y().max()).dynamic(false);
+        builder.width(offsets.x().max()).height(offsets.y().max());
 
-        builder.slot(slot -> slot.index(4).pos(offsets).texture(Texture.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(4).pos(offsets).texture(SimpleRenderable.DISPENSER_SLOT));
         offsets.x().addSlot(false);
-        builder.slot(slot -> slot.index(1).x(offsets).y(offsets.getY() + SLOT.size()).texture(Texture.DISPENSER_SLOT));
-        builder.slot(slot -> slot.index(7).x(offsets).y(offsets.getY() - SLOT.size()).texture(Texture.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(1).x(offsets).y(offsets.getY() + SLOT.size()).texture(SimpleRenderable.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(7).x(offsets).y(offsets.getY() - SLOT.size()).texture(SimpleRenderable.DISPENSER_SLOT));
         offsets.x().addSlot(false);
-        builder.slot(slot -> slot.index(2).x(offsets).y(offsets.getY() + SLOT.size() * 2).texture(Texture.DISPENSER_SLOT));
-        builder.slot(slot -> slot.index(5).pos(offsets).texture(Texture.ENCHANTING_TABLE_SLOT));
-        builder.slot(slot -> slot.index(8).x(offsets).y(offsets.getY() - SLOT.size() * 2).texture(Texture.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(2).x(offsets).y(offsets.getY() + SLOT.size() * 2).texture(SimpleRenderable.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(5).pos(offsets).texture(SimpleRenderable.ENCHANTING_TABLE_SLOT));
+        builder.slot(slot -> slot.index(8).x(offsets).y(offsets.getY() - SLOT.size() * 2).texture(SimpleRenderable.DISPENSER_SLOT));
         offsets.x().addSlot(false);
-        builder.slot(slot -> slot.index(3).x(offsets).y(offsets.getY() + SLOT.size()).texture(Texture.DISPENSER_SLOT));
-        builder.slot(slot -> slot.index(9).x(offsets).y(offsets.getY() - SLOT.size()).texture(Texture.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(3).x(offsets).y(offsets.getY() + SLOT.size()).texture(SimpleRenderable.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(9).x(offsets).y(offsets.getY() - SLOT.size()).texture(SimpleRenderable.DISPENSER_SLOT));
         offsets.x().addSlot(false);
         builder.slot(slot -> slot.index(6).pos(offsets));
         offsets.x().addSlot();
@@ -54,7 +54,7 @@ public enum DefaultDisplays {
                 PADDING + SLOT.size() * 3 + PADDING
         );
 
-        builder.fixedX(true).fixedY(true).width(offsets.x().max()).height(offsets.y().max()).dynamic(false);
+        builder.width(offsets.x().max()).height(offsets.y().max());
 
         builder.slot(slot -> slot.index(1).pos(offsets));
         offsets.y().addSlot(false);
@@ -91,7 +91,7 @@ public enum DefaultDisplays {
 
     <B extends AbstractDisplayBuilder<B>> DefaultDisplays(String id, Supplier<B> displayProvider) {
         this.id = id;
-        this.display = displayProvider.get().build(id);
+        this.display = displayProvider.get().build();
     }
 
     public String id() {
