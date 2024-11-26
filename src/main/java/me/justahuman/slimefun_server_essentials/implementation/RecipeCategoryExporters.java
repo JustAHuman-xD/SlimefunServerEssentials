@@ -5,6 +5,7 @@ import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
 import me.justahuman.slimefun_server_essentials.api.RecipeCategoryBuilder;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,7 +64,11 @@ public class RecipeCategoryExporters {
     }
 
     public static <C extends RecipeType> void registerTypeExporter(C type, BiConsumer<SlimefunItem, RecipeCategoryBuilder> exporter) {
-        TYPE_EXPORTERS.put(type, exporter);
+        registerTypeExporter(type, type.toItem(), exporter);
+    }
+
+    public static <C extends RecipeType> void registerTypeExporter(C type, ItemStack item, BiConsumer<SlimefunItem, RecipeCategoryBuilder> exporter) {
+        TYPE_EXPORTERS.put(type, exporter.andThen((ignored, builder) -> builder.item(item)));
     }
 
     private record ItemRecipeCategoryExporter<I extends SlimefunItem>(Class<I> clazz, BiConsumer<I, RecipeCategoryBuilder> exporter) {

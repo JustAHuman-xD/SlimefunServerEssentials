@@ -62,7 +62,7 @@ public class ComponentBuilder {
         return this;
     }
 
-    public ComponentBuilder texture(SimpleRenderable renderable) {
+    public ComponentBuilder renderable(SimpleRenderable renderable) {
         this.renderable = renderable;
         return this;
     }
@@ -82,6 +82,10 @@ public class ComponentBuilder {
         }
         if (output) {
             component.addProperty("output", true);
+        }
+
+        if (renderable != null) {
+            component.add("renderable", renderable.toJson());
         }
 
         if (!tooltip.isEmpty()) {

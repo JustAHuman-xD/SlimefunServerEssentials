@@ -6,13 +6,14 @@ import com.google.gson.JsonObject;
 import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.Pair;
 import me.justahuman.slimefun_server_essentials.api.RecipeCategoryBuilder;
 import me.justahuman.slimefun_server_essentials.implementation.RecipeCategoryExporters;
 import me.justahuman.slimefun_server_essentials.util.Utils;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,19 +22,20 @@ public class RecipeCategoriesChannel extends AbstractChannel {
     public void load() {
         if (messages.isEmpty()) {
             for (Map.Entry<SlimefunAddon, List<SlimefunItem>> registryEntry : Utils.getSortedAddonRegistry().entrySet()) {
-                List<SlimefunItem> items = registryEntry.getValue();
-                for (SlimefunItem item : items) {
-                    JsonObject category = RecipeCategoryExporters.exportItemsRecipes(item);
-                    if (category != null) {
-                        ByteArrayDataOutput itemCategoryPacket = ByteStreams.newDataOutput();
-                        itemCategoryPacket.writeUTF(item.getId());
-                        itemCategoryPacket.writeUTF(category.toString());
-                        messages.addAll(splitMessage(itemCategoryPacket.toByteArray()));
-                    }
-                }
+                List<Pair<SlimefunItem, JsonObject>> itemCategories = registryEntry.getValue().stream()
+                        .map(item -> new Pair<>(item, RecipeCategoryExporters.exportItemsRecipes(item)))
+                        .filter(pair -> pair.getSecondValue() != null).toList();
 
-                Map<RecipeType, RecipeCategoryBuilder> builderMap = new HashMap<>();
-                for (SlimefunItem item : items) {
+                ByteArrayDataOutput itemCategoriesPacket = ByteStreams.newDataOutput();
+                itemCategoriesPacket.writeInt(itemCategories.size());
+                for (Pair<SlimefunItem, JsonObject> category : itemCategories) {
+                    itemCategoriesPacket.writeUTF(category.getFirstValue().getId());
+                    itemCategoriesPacket.writeUTF(category.getSecondValue().toString());
+                }
+                messages.addAll(splitMessage(itemCategoriesPacket.toByteArray()));
+
+                Map<RecipeType, RecipeCategoryBuilder> builderMap = new LinkedHashMap<>();
+                for (SlimefunItem item : registryEntry.getValue()) {
                     RecipeType type = item.getRecipeType();
                     RecipeCategoryBuilder builder = builderMap.getOrDefault(type, new RecipeCategoryBuilder());
                     RecipeCategoryExporters.exportTypeRecipes(item, builder);
@@ -42,12 +44,13 @@ public class RecipeCategoriesChannel extends AbstractChannel {
                     }
                 }
 
+                ByteArrayDataOutput typeCategoriesPacket = ByteStreams.newDataOutput();
+                typeCategoriesPacket.writeInt(builderMap.size());
                 for (Map.Entry<RecipeType, RecipeCategoryBuilder> entry : builderMap.entrySet()) {
-                    ByteArrayDataOutput typeCategoryPacket = ByteStreams.newDataOutput();
-                    typeCategoryPacket.writeUTF(entry.getKey().getKey().getKey());
-                    typeCategoryPacket.writeUTF(entry.getValue().build().toString());
-                    messages.addAll(splitMessage(typeCategoryPacket.toByteArray()));
+                    typeCategoriesPacket.writeUTF(entry.getKey().getKey().getKey());
+                    typeCategoriesPacket.writeUTF(entry.getValue().build().toString());
                 }
+                messages.addAll(splitMessage(typeCategoriesPacket.toByteArray()));
             }
         }
     }

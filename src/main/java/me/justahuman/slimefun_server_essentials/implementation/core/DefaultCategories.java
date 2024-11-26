@@ -326,7 +326,8 @@ public class DefaultCategories {
             builder.energy(-assembler.getEnergyConsumption());
         });
         registerItemExporter(SlimefunItems.CLIMBING_PICK, (item, builder) -> {});
-        registerTypeExporter(RecipeType.BARTER_DROP, (item, builder) -> builder.recipe(new RecipeBuilder().input(EntityType.PIGLIN, false, 1, 0).input(Material.GOLD_INGOT).output(item.getRecipeOutput())));
+        registerTypeExporter(RecipeType.BARTER_DROP, (item, builder) ->
+                builder.recipe(new RecipeBuilder().input(EntityType.PIGLIN, false, 1, 0).input(Material.GOLD_INGOT).output(item.getRecipeOutput())));
         registerTypeExporter(RecipeType.MOB_DROP, (item, builder) -> {
             if (item instanceof BasicCircuitBoard board && board.isDroppedFromGolems()) {
                 builder.recipe(new RecipeBuilder().input(EntityType.IRON_GOLEM, false, 1, 0).output(board.getRecipeOutput(), board.getMobDropChance() / 100F));

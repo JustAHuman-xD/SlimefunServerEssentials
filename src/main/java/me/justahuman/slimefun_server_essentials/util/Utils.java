@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public class Utils {
     private static final Map<SlimefunAddon, List<SlimefunItem>> SORTED_ADDON_REGISTRY = new LinkedHashMap<>();
@@ -37,11 +38,7 @@ public class Utils {
         List<RecipeType> recipeTypes = new ArrayList<>();
         Map<SlimefunAddon, List<SlimefunItem>> addonItems = new HashMap<>();
         Map<RecipeType, List<SlimefunItem>> recipeItems = new HashMap<>();
-        Map<SlimefunItem, Integer> itemPriorities = new HashMap<>();
         for (SlimefunItem item : Slimefun.getRegistry().getEnabledSlimefunItems()) {
-            ItemGroup group = item.getItemGroup();
-            int priority = group.getTier() * 1000 + group.getItems().indexOf(item);
-            itemPriorities.put(item, priority);
             addonItems.compute(item.getAddon(), (addon, items) -> {
                 if (items == null) {
                     items = new ArrayList<>();
@@ -69,22 +66,34 @@ public class Utils {
         }
 
         addons.remove(Slimefun.instance());
-        addons.sort(Comparator.comparingInt(addon -> addonItems.get(addon).stream().mapToInt(itemPriorities::get).min().orElse(0)));
+        addons.sort(byItemIndexInGroup(addonItems::get));
+        addons.sort(byItemGroupIndex(addonItems::get));
         addons.addFirst(Slimefun.instance());
 
         for (SlimefunAddon addon : addons) {
             List<SlimefunItem> items = addonItems.get(addon);
-            items.sort(Comparator.comparingInt(itemPriorities::get));
+            items.sort(byItemIndexInGroup(i -> items));
+            items.sort(byItemGroupIndex(i -> items));
             SORTED_ADDON_REGISTRY.put(addon, items);
         }
 
-        recipeTypes.sort(Comparator.comparingInt(type -> recipeItems.get(type).stream().mapToInt(itemPriorities::get).min().orElse(0)));
+        recipeTypes.sort(byItemIndexInGroup(recipeItems::get));
+        recipeTypes.sort(byItemGroupIndex(recipeItems::get));
 
         for (RecipeType recipeType : recipeTypes) {
             List<SlimefunItem> items = recipeItems.get(recipeType);
-            items.sort(Comparator.comparingInt(itemPriorities::get));
+            items.sort(byItemIndexInGroup(i -> items));
+            items.sort(byItemGroupIndex(i -> items));
             SORTED_RECIPE_REGISTRY.put(recipeType, items);
         }
+    }
+
+    public static <T> Comparator<T> byItemIndexInGroup(Function<T, Collection<SlimefunItem>> items) {
+        return Comparator.comparingInt(t -> items.apply(t).stream().mapToInt(item -> item.getItemGroup().getItems().indexOf(item)).min().orElse(0));
+    }
+
+    public static <T> Comparator<T> byItemGroupIndex(Function<T, Collection<SlimefunItem>> items) {
+        return Comparator.comparingInt(t -> items.apply(t).stream().mapToInt(item -> Slimefun.getRegistry().getAllItemGroups().indexOf(item.getItemGroup())).min().orElse(0));
     }
 
     public static ItemStack waterBottle() {
@@ -121,12 +130,14 @@ public class Utils {
         return itemStack;
     }
 
+    @SafeVarargs
     public static <T> Set<T> merge(Collection<T> collection, T... values) {
         final Set<T> set = new HashSet<>(collection);
         set.addAll(Arrays.asList(values));
         return set;
     }
 
+    @SafeVarargs
     public static <N extends Number> N max(N... numbers) {
         N max = null;
         for (N number : numbers) {

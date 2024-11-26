@@ -24,17 +24,17 @@ public enum DefaultDisplays {
 
         builder.width(offsets.x().max()).height(offsets.y().max());
         offsets.y().add(SLOT.size() * 2);
-        builder.slot(slot -> slot.index(4).pos(offsets).texture(SimpleRenderable.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(4).pos(offsets).renderable(SimpleRenderable.DISPENSER_SLOT));
         offsets.x().addSlot(false);
-        builder.slot(slot -> slot.index(1).x(offsets).y(offsets.getY() + SLOT.size()).texture(SimpleRenderable.DISPENSER_SLOT));
-        builder.slot(slot -> slot.index(7).x(offsets).y(offsets.getY() - SLOT.size()).texture(SimpleRenderable.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(1).x(offsets).y(offsets.getY() + SLOT.size()).renderable(SimpleRenderable.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(7).x(offsets).y(offsets.getY() - SLOT.size()).renderable(SimpleRenderable.DISPENSER_SLOT));
         offsets.x().addSlot(false);
-        builder.slot(slot -> slot.index(2).x(offsets).y(offsets.getY() + SLOT.size() * 2).texture(SimpleRenderable.DISPENSER_SLOT));
-        builder.slot(slot -> slot.index(5).pos(offsets).texture(SimpleRenderable.ENCHANTING_TABLE_SLOT));
-        builder.slot(slot -> slot.index(8).x(offsets).y(offsets.getY() - SLOT.size() * 2).texture(SimpleRenderable.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(2).x(offsets).y(offsets.getY() + SLOT.size() * 2).renderable(SimpleRenderable.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(5).pos(offsets).renderable(SimpleRenderable.ENCHANTING_TABLE_SLOT));
+        builder.slot(slot -> slot.index(8).x(offsets).y(offsets.getY() - SLOT.size() * 2).renderable(SimpleRenderable.DISPENSER_SLOT));
         offsets.x().addSlot(false);
-        builder.slot(slot -> slot.index(3).x(offsets).y(offsets.getY() + SLOT.size()).texture(SimpleRenderable.DISPENSER_SLOT));
-        builder.slot(slot -> slot.index(9).x(offsets).y(offsets.getY() - SLOT.size()).texture(SimpleRenderable.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(3).x(offsets).y(offsets.getY() + SLOT.size()).renderable(SimpleRenderable.DISPENSER_SLOT));
+        builder.slot(slot -> slot.index(9).x(offsets).y(offsets.getY() - SLOT.size()).renderable(SimpleRenderable.DISPENSER_SLOT));
         offsets.x().addSlot(false);
         builder.slot(slot -> slot.index(6).pos(offsets));
         offsets.x().addSlot();
