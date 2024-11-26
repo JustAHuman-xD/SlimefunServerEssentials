@@ -132,8 +132,10 @@ public class DefaultCategories {
                 // Slimefun Ancient Altar Recipes are put in this Strange Order, don't ask me Why
                 final ItemStack[] inputs = new ItemStack[] { i.get(0), i.get(1), i.get(2), i.get(7), altarRecipe.getCatalyst(), i.get(3), i.get(6), i.get(5), i.get(4) };
                 // An Ancient Altar Task goes through 36 "stages" before completion, the delay between each is 8 ticks.
+                // TODO: account for different configs
                 builder.recipe(new RecipeBuilder().ticks(36 * 8).inputs(inputs).output(altarRecipe.getOutput()));
             }
+            builder.display(DefaultDisplays.ANCIENT_ALTAR);
         });
         registerItemExporter(SolarGenerator.class, (generator, builder) -> {
             builder.recipe(new RecipeBuilder().sfTicks(1).energy(generator.getDayEnergy()).label(REQUIRES_DAY));
@@ -143,7 +145,7 @@ public class DefaultCategories {
             for (Material input : pan.getInputMaterials()) {
                 final RandomizedSet<ItemStack> outputs = ReflectionUtils.getField(GoldPan.class, pan, "randomizer", new RandomizedSet<>());
                 for (Map.Entry<ItemStack, Float> output : outputs.toMap().entrySet()) {
-                    builder.recipe(new RecipeBuilder().input(new ItemStack(input)).output(output.getKey(), output.getValue()).sfTicks(60));
+                    builder.recipe(new RecipeBuilder().input(new ItemStack(input)).output(output.getKey(), output.getValue()));
                 }
             }
         });

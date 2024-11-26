@@ -11,7 +11,6 @@ import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.items.VanillaItem;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.Pair;
 import me.justahuman.slimefun_server_essentials.api.ComplexItem;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -151,13 +150,13 @@ public class JsonUtils {
         final List<JsonElement> jsonElements = JsonArrayList.of(array);
         jsonElements.sort((e1, e2) -> {
             if (e1 instanceof JsonObject json1 && e2 instanceof JsonObject json2) {
-                final int timeCompare = Integer.compare(getInt(json1, "time", 1), getInt(json2, "time", 1));
-                if (timeCompare != 0) {
-                    return timeCompare;
+                final int ticksCompare = Integer.compare(getInt(json1, "sf_ticks", 1), getInt(json2, "sf_ticks", 1));
+                if (ticksCompare != 0) {
+                    return ticksCompare;
                 }
                 final int inputsCompare = Integer.compare(getArray(json1, "inputs", new JsonArray()).size(), getArray(json2, "inputs", new JsonArray()).size());
                 if (inputsCompare != 0) {
-                    return timeCompare;
+                    return inputsCompare;
                 }
                 return Integer.compare(getArray(json1, "outputs", new JsonArray()).size(), getArray(json2, "outputs", new JsonArray()).size());
             } else if (e1 instanceof JsonPrimitive primitive1 && e2 instanceof JsonPrimitive primitive2) {
@@ -234,7 +233,7 @@ public class JsonUtils {
         final JsonArray inputs1 = getArray(recipe1, "inputs", new JsonArray());
         final JsonArray outputs1 = getArray(recipe1, "outputs", new JsonArray());
         final JsonArray labels1 = getArray(recipe1, "labels", new JsonArray());
-        final Integer time1 = getInt(recipe1, "time", null);
+        final Integer sfTicks1 = getInt(recipe1, "sf_ticks", null);
         final Integer energy1 = getInt(recipe1, "energy", null);
 
         for (int index = 0; index < recipes.size(); index++) {
@@ -247,10 +246,10 @@ public class JsonUtils {
             final JsonArray inputs2 = getArray(recipe2, "inputs", new JsonArray());
             final JsonArray outputs2 = getArray(recipe2, "outputs", new JsonArray());
             final JsonArray labels2 = getArray(recipe2, "labels", new JsonArray());
-            final Integer time2 = getInt(recipe2, "time", null);
+            final Integer sfTicks2 = getInt(recipe2, "sf_ticks", null);
             final Integer energy2 = getInt(recipe1, "energy", null);
 
-            if (!Objects.equals(time1, time2) || !Objects.equals(energy1, energy2)) {
+            if (!Objects.equals(sfTicks1, sfTicks2) || !Objects.equals(energy1, energy2)) {
                 continue;
             }
 
@@ -302,8 +301,8 @@ public class JsonUtils {
                 }
             }
 
-            if (time1 != null) {
-                recipe3.addProperty("time", time1);
+            if (sfTicks1 != null) {
+                recipe3.addProperty("sf_ticks", sfTicks1);
             }
 
             addArray(recipe3, "complex", complex3);

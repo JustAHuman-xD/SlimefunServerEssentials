@@ -23,7 +23,7 @@ public enum DefaultDisplays {
         );
 
         builder.width(offsets.x().max()).height(offsets.y().max());
-
+        offsets.y().add(SLOT.size() * 2);
         builder.slot(slot -> slot.index(4).pos(offsets).texture(SimpleRenderable.DISPENSER_SLOT));
         offsets.x().addSlot(false);
         builder.slot(slot -> slot.index(1).x(offsets).y(offsets.getY() + SLOT.size()).texture(SimpleRenderable.DISPENSER_SLOT));
@@ -41,7 +41,7 @@ public enum DefaultDisplays {
 
         builder.fillingArrowRight(arrow -> arrow.x(offsets).centeredY(offsets));
         offsets.x().addArrow();
-        builder.slot(slot -> slot.x(offsets).centeredY(offsets).output());
+        builder.slot(slot -> slot.x(offsets).centeredY(offsets).index(1).output());
 
         return builder;
     }),
@@ -50,7 +50,7 @@ public enum DefaultDisplays {
         RecipeDisplayBuilder builder = new RecipeDisplayBuilder();
         OffsetBuilder offsets = new OffsetBuilder(
                 PADDING, PADDING,
-                PADDING + SLOT.size() + PADDING + ARROW_RIGHT.width() + PADDING + SLOT.size() + PADDING + ARROW_LEFT.size() + PADDING + SLOT.size() + PADDING,
+                PADDING + SLOT.size() + PADDING + ARROW_RIGHT.width() + PADDING + LARGE_SLOT.size() + PADDING + ARROW_LEFT.size() + PADDING + SLOT.size() + PADDING,
                 PADDING + SLOT.size() * 3 + PADDING
         );
 
@@ -66,9 +66,11 @@ public enum DefaultDisplays {
         builder.fillingArrowRight(arrow -> arrow.pos(offsets));
         offsets.x().addArrow();
 
+        offsets.y().subtract(LARGE_SLOT.size() - SLOT.size());
         builder.energy(energy -> energy.x(offsets.getX() + (LARGE_SLOT.size() - ENERGY.width()) / 2).y(offsets.getY() - ENERGY.height() - PADDING));
         builder.largeSlot(slot -> slot.pos(offsets).output());
         offsets.x().addLargeSlot();
+        offsets.y().add(LARGE_SLOT.size() - SLOT.size());
 
         builder.fillingArrowLeft(arrow -> arrow.pos(offsets));
         offsets.x().addArrow();

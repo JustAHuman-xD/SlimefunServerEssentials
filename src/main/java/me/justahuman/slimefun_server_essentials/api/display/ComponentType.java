@@ -24,6 +24,14 @@ public class ComponentType {
         return this.id;
     }
 
+    public CustomRenderable light() {
+        return this.light;
+    }
+
+    public CustomRenderable dark() {
+        return this.dark;
+    }
+
     public int size() {
         return width();
     }

@@ -41,4 +41,9 @@ public record SimpleRenderable(String identifier, int width, int height, int u, 
         }
         return json;
     }
+
+    @Override
+    public SimpleRenderable withTooltip(String... tooltip) {
+        return new SimpleRenderable(identifier, width, height, u, v, textureWidth, textureHeight, tooltip);
+    }
 }

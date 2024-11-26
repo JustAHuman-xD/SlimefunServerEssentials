@@ -16,9 +16,11 @@ public class GridDisplayBuilder extends AbstractDisplayBuilder<GridDisplayBuilde
         energy(energy -> energy.x(offsets).centeredY(offsets));
         offsets.x().addEnergy();
 
+        offsets.y().set((offsets.y().max() - SLOT.size() * inputColumns) / 2);
         for (int r = 0; r < inputRows; r++) {
             for (int c = 0; c < inputColumns; c++) {
-                slot(slot -> slot.pos(offsets));
+                int index = r + 1 + c * inputRows;
+                slot(slot -> slot.pos(offsets).index(index));
                 offsets.y().addSlot(false);
             }
             offsets.y().subtract(SLOT.size() * inputColumns);
@@ -29,12 +31,14 @@ public class GridDisplayBuilder extends AbstractDisplayBuilder<GridDisplayBuilde
         fillingArrowRight(arrow -> arrow.x(offsets).centeredY(offsets));
         offsets.x().addArrow();
 
-        for (int r = 0; r < inputRows; r++) {
-            for (int c = 0; c < inputColumns; c++) {
-                slot(slot -> slot.pos(offsets).output());
+        offsets.y().set((offsets.y().max() - SLOT.size() * outputColumns) / 2);
+        for (int r = 0; r < outputRows; r++) {
+            for (int c = 0; c < outputColumns; c++) {
+                int index = r + 1 + c * outputRows;
+                slot(slot -> slot.pos(offsets).index(index).output());
                 offsets.y().addSlot(false);
             }
-            offsets.y().subtract(SLOT.size() * inputColumns);
+            offsets.y().subtract(SLOT.size() * outputColumns);
             offsets.x().addSlot(false);
         }
 

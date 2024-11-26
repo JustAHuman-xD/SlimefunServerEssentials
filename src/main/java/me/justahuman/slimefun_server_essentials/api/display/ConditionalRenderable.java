@@ -22,4 +22,9 @@ public record ConditionalRenderable(CustomRenderable passedRenderable, CustomRen
         json.add("condition", this.condition.toJson());
         return json;
     }
+
+    @Override
+    public CustomRenderable withTooltip(String... tooltip) {
+        return new ConditionalRenderable(this.passedRenderable.withTooltip(tooltip), this.failedRenderable.withTooltip(tooltip), this.condition);
+    }
 }

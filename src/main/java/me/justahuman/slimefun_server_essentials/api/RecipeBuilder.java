@@ -2,6 +2,7 @@ package me.justahuman.slimefun_server_essentials.api;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import me.justahuman.slimefun_server_essentials.api.display.ComponentType;
 import me.justahuman.slimefun_server_essentials.util.JsonUtils;
 import org.bukkit.Fluid;
@@ -12,7 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.List;
 
 public class RecipeBuilder {
-    private Integer time = null;
+    private Integer sfTicks = null;
     private Integer energy = null;
     private final JsonArray complex = new JsonArray();
     private final JsonArray inputs = new JsonArray();
@@ -20,12 +21,12 @@ public class RecipeBuilder {
     private final JsonArray labels = new JsonArray();
 
     public RecipeBuilder sfTicks(Integer ticks) {
-        return ticks == null ? this : ticks(ticks * 10);
+        this.sfTicks = ticks;
+        return this;
     }
 
     public RecipeBuilder ticks(Integer ticks) {
-        this.time = ticks;
-        return this;
+        return ticks == null ? this : sfTicks(ticks / Slimefun.getTickerTask().getTickRate());
     }
 
     public RecipeBuilder energy(Integer energy) {
@@ -133,8 +134,8 @@ public class RecipeBuilder {
     
     public JsonObject build() {
         final JsonObject recipe = new JsonObject();
-        if (this.time != null && time > 0) {
-            recipe.addProperty("time", this.time);
+        if (this.sfTicks != null && sfTicks > 0) {
+            recipe.addProperty("sf_ticks", this.sfTicks);
         }
 
         if (this.energy != null && energy != 0) {
