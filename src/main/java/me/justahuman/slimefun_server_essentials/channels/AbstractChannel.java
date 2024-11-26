@@ -12,8 +12,8 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,6 +21,8 @@ import java.util.UUID;
 
 public abstract class AbstractChannel implements PluginMessageListener, Listener {
     protected static final int MAX_MESSAGE_SIZE = 32766;
+    protected static final int SPLIT_MESSAGE_SIZE = MAX_MESSAGE_SIZE - 4 - 4 - 4;
+    protected static int messageId = 0;
     protected final Set<UUID> players = new HashSet<>();
 
     protected AbstractChannel() {
@@ -69,20 +71,21 @@ public abstract class AbstractChannel implements PluginMessageListener, Listener
     }
 
     public List<byte[]> splitMessage(byte[] data) {
-        byte[] newData = new byte[data.length + 4];
-        System.arraycopy(data, 0, newData, 4, data.length);
-
-        int pieces = (int) Math.ceil(newData.length / (double) MAX_MESSAGE_SIZE);
-        newData[0] = (byte) (pieces >> 24);
-        newData[1] = (byte) (pieces >> 16);
-        newData[2] = (byte) (pieces >> 8);
-        newData[3] = (byte) pieces;
+        int pieces = (int) Math.ceil(data.length / (double) SPLIT_MESSAGE_SIZE);
+        byte[] messageIdBytes = ByteBuffer.allocate(4).putInt(messageId++).array();
+        byte[] piecesBytes = ByteBuffer.allocate(4).putInt(pieces).array();
 
         List<byte[]> split = new ArrayList<>();
         for (int i = 0; i < pieces; i++) {
-            int start = i * MAX_MESSAGE_SIZE;
-            int end = Math.min(newData.length, (i + 1) * MAX_MESSAGE_SIZE);
-            split.add(Arrays.copyOfRange(newData, start, end));
+            byte[] indexBytes = ByteBuffer.allocate(4).putInt(i).array();
+            byte[] bytes = new byte[MAX_MESSAGE_SIZE];
+            int start = i * SPLIT_MESSAGE_SIZE;
+            int end = Math.min(data.length, (i + 1) * SPLIT_MESSAGE_SIZE);
+            System.arraycopy(messageIdBytes, 0, bytes, 0, 4);
+            System.arraycopy(piecesBytes, 0, bytes, 4, 4);
+            System.arraycopy(indexBytes, 0, bytes, 8, 4);
+            System.arraycopy(data, start, bytes, 12, end - start);
+            split.add(bytes);
         }
         return split;
     }

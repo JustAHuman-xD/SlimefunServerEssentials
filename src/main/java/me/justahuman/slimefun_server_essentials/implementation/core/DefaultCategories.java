@@ -219,7 +219,7 @@ public class DefaultCategories {
         });
         registerItemExporter(ExpCollector.class, (collector, builder) -> {
             builder.recipe(new RecipeBuilder().input("$:1").output(SlimefunItems.FILLED_FLASK_OF_KNOWLEDGE).sfTicks(1));
-            builder.energy(-ReflectionUtils.getStaticField(ExpCollector.class,"ENERGY_CONSUMPTION", 10));
+            builder.energy(-collector.getEnergyConsumption());
         });
         registerItemExporter(ChargingBench.class, (bench, builder) -> {
             chargingBenchRecipe(bench, builder, SlimefunItems.DURALUMIN_MULTI_TOOL);

@@ -1,5 +1,7 @@
 package me.justahuman.slimefun_server_essentials.util;
 
+import io.github.thebusybiscuit.slimefun4.implementation.items.electric.machines.entities.ExpCollector;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 

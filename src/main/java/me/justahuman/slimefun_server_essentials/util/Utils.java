@@ -13,7 +13,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 
 import java.util.ArrayList;
@@ -30,7 +29,7 @@ import java.util.Set;
 public class Utils {
     private static final Map<SlimefunAddon, List<SlimefunItem>> SORTED_ADDON_REGISTRY = new LinkedHashMap<>();
     private static final Map<RecipeType, List<SlimefunItem>> SORTED_RECIPE_REGISTRY = new LinkedHashMap<>();
-    private static final ItemStack WATER_BOTTLE = new CustomItemStack(Material.POTION, meta -> ((PotionMeta) meta).setBasePotionData(new PotionData(PotionType.WATER)));
+    private static final ItemStack WATER_BOTTLE = new CustomItemStack(Material.POTION, meta -> ((PotionMeta) meta).setBasePotionType(PotionType.WATER));
 
     public static void load() {
         SORTED_ADDON_REGISTRY.clear();

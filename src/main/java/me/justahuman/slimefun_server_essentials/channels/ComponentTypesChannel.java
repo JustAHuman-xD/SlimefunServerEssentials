@@ -32,6 +32,6 @@ public class ComponentTypesChannel extends AbstractChannel {
 
     @Override
     public String getChannel() {
-        return "slimefun_server_essentials:recipe_labels";
+        return "slimefun_server_essentials:component_types";
     }
 }
