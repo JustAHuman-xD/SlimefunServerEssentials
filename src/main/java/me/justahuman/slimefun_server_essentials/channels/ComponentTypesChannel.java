@@ -7,25 +7,24 @@ import me.justahuman.slimefun_server_essentials.implementation.DisplayComponentT
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class ComponentTypesChannel extends AbstractChannel {
-    private static final List<byte[]> MESSAGES = new ArrayList<>();
-
     @Override
-    public void onRegisterConnection(@Nonnull Player player) {
-        if (MESSAGES.isEmpty()) {
+    public void load() {
+        if (messages.isEmpty()) {
             for (Map.Entry<String, JsonObject> entry : DisplayComponentTypes.getComponentTypes().entrySet()) {
                 ByteArrayDataOutput displayPacket = ByteStreams.newDataOutput();
                 displayPacket.writeUTF(entry.getKey());
                 displayPacket.writeUTF(entry.getValue().toString());
-                MESSAGES.addAll(splitMessage(displayPacket.toByteArray()));
+                messages.addAll(splitMessage(displayPacket.toByteArray()));
             }
         }
+    }
 
-        for (byte[] message : MESSAGES) {
+    @Override
+    public void onRegisterConnection(@Nonnull Player player) {
+        for (byte[] message : messages) {
             sendMessage(player, message);
         }
     }

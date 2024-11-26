@@ -12,17 +12,14 @@ import me.justahuman.slimefun_server_essentials.util.Utils;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class RecipeCategoriesChannel extends AbstractChannel {
-    private static final List<byte[]> MESSAGES = new ArrayList<>();
-
     @Override
-    public void onRegisterConnection(@Nonnull Player player) {
-        if (MESSAGES.isEmpty()) {
+    public void load() {
+        if (messages.isEmpty()) {
             for (Map.Entry<SlimefunAddon, List<SlimefunItem>> registryEntry : Utils.getSortedAddonRegistry().entrySet()) {
                 List<SlimefunItem> items = registryEntry.getValue();
                 for (SlimefunItem item : items) {
@@ -31,7 +28,7 @@ public class RecipeCategoriesChannel extends AbstractChannel {
                         ByteArrayDataOutput itemCategoryPacket = ByteStreams.newDataOutput();
                         itemCategoryPacket.writeUTF(item.getId());
                         itemCategoryPacket.writeUTF(category.toString());
-                        MESSAGES.addAll(splitMessage(itemCategoryPacket.toByteArray()));
+                        messages.addAll(splitMessage(itemCategoryPacket.toByteArray()));
                     }
                 }
 
@@ -49,12 +46,15 @@ public class RecipeCategoriesChannel extends AbstractChannel {
                     ByteArrayDataOutput typeCategoryPacket = ByteStreams.newDataOutput();
                     typeCategoryPacket.writeUTF(entry.getKey().getKey().getKey());
                     typeCategoryPacket.writeUTF(entry.getValue().build().toString());
-                    MESSAGES.addAll(splitMessage(typeCategoryPacket.toByteArray()));
+                    messages.addAll(splitMessage(typeCategoryPacket.toByteArray()));
                 }
             }
         }
+    }
 
-        for (byte[] message : MESSAGES) {
+    @Override
+    public void onRegisterConnection(@Nonnull Player player) {
+        for (byte[] message : messages) {
             sendMessage(player, message);
         }
     }

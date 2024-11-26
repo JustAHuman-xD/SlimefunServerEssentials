@@ -23,6 +23,7 @@ public abstract class AbstractChannel implements PluginMessageListener, Listener
     protected static final int MAX_MESSAGE_SIZE = 32766;
     protected static final int SPLIT_MESSAGE_SIZE = MAX_MESSAGE_SIZE - 4 - 4 - 4;
     protected static int messageId = 0;
+    protected final List<byte[]> messages = new ArrayList<>();
     protected final Set<UUID> players = new HashSet<>();
 
     protected AbstractChannel() {
@@ -33,6 +34,7 @@ public abstract class AbstractChannel implements PluginMessageListener, Listener
     }
 
     public abstract String getChannel();
+    public void load() {}
     public void onRegisterConnection(@Nonnull Player player) {}
     public void onMessageReceived(@Nonnull Player player, @Nonnull byte[] message) {}
 
@@ -57,7 +59,6 @@ public abstract class AbstractChannel implements PluginMessageListener, Listener
         }
 
         players.add(event.getPlayer().getUniqueId());
-        onRegisterConnection(event.getPlayer());
     }
 
     @Override

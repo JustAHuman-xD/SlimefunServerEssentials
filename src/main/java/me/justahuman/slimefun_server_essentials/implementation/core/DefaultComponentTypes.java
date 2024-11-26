@@ -22,7 +22,7 @@ public class DefaultComponentTypes {
                     new SimpleRenderable(SimpleRenderable.WIDGETS_DARK, 7, 9, 50, 0, "%energy%J Consumed"),
                     new Condition(Condition.PROPERTY_ENERGY, Condition.CONDITION_GREATER_EQUALS, 0)
             ),
-            7, 9, 500
+            7, 9, 500, false
     ).register();
     public static final ComponentType SLOT = simple("slot", 18, 18, 0, 0);
     public static final ComponentType LARGE_SLOT = simple("large_slot", 26, 26, 0, 0);
@@ -35,7 +35,7 @@ public class DefaultComponentTypes {
             new SimpleRenderable(SimpleRenderable.WIDGETS_DARK, 24, 17, 44, 222, "%time_seconds% Seconds (%time% Ticks)"),
             new SimpleRenderable(SimpleRenderable.WIDGETS_DARK, 24, 17, 44, 239),
             24, 17, FillingComponentType.RECIPE_TIME,
-            Condition.TRUE, Condition.TRUE
+            true, Condition.TRUE, Condition.TRUE
     ).register();
     public static final ComponentType FILLING_ARROW_LEFT = new FillingComponentType(
             "filling_arrow_left",
@@ -44,7 +44,7 @@ public class DefaultComponentTypes {
             new SimpleRenderable(SimpleRenderable.WIDGETS_DARK, 24, 17, 67, 222, "%time_seconds% Seconds (%time% Ticks)"),
             new SimpleRenderable(SimpleRenderable.WIDGETS_DARK, 24, 17, 67, 239),
             24, 17, FillingComponentType.RECIPE_TIME,
-            Condition.TRUE, Condition.FALSE
+            true, Condition.TRUE, Condition.FALSE
     ).register();
     public static final ComponentType REQUIRES_DAY = simple("day", 13, 13, 57, 0);
     public static final ComponentType REQUIRES_NIGHT = simple("night", 13, 13, 70, 0);

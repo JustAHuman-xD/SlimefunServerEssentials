@@ -5,11 +5,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import de.tr7zw.nbtapi.NBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.implementation.items.VanillaItem;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.Pair;
 import me.justahuman.slimefun_server_essentials.api.ComplexItem;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -192,20 +194,15 @@ public class JsonUtils {
         }
 
         final JsonObject itemObject = new JsonObject();
-        itemObject.add("item", new JsonPrimitive("minecraft:" + itemStack.getType().name().toLowerCase()));
+        final ReadWriteNBT itemNBT = NBT.itemStackToNBT(itemStack);
+        final ReadWriteNBT components = itemNBT.getCompound("components");
 
-        String nbtString = NBT.itemStackToNBT(itemStack).toString();
-
-        if (nbtString.startsWith("{components:")) {
-            nbtString = nbtString.substring(12);
+        itemObject.addProperty("id", itemNBT.getString("id"));
+        itemObject.addProperty("amount", itemStack.getAmount());
+        if (components != null) {
+            itemObject.add("components", new JsonPrimitive(components.toString()));
         }
 
-        int suffixIndex = nbtString.indexOf(",count");
-        if (suffixIndex != -1) {
-            nbtString = nbtString.substring(0, suffixIndex);
-        }
-
-        itemObject.add("components", new JsonPrimitive(nbtString));
         return itemObject;
     }
 

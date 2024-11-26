@@ -9,16 +9,13 @@ import me.justahuman.slimefun_server_essentials.util.Utils;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class ItemsChannel extends AbstractChannel {
-    private static final List<byte[]> MESSAGES = new ArrayList<>();
-
     @Override
-    public void onRegisterConnection(@Nonnull Player player) {
-        if (MESSAGES.isEmpty()) {
+    public void load() {
+        if (messages.isEmpty()) {
             for (Map.Entry<SlimefunAddon, List<SlimefunItem>> registryEntry : Utils.getSortedAddonRegistry().entrySet()) {
                 List<SlimefunItem> items = registryEntry.getValue();
                 ByteArrayDataOutput itemsPacket = ByteStreams.newDataOutput();
@@ -27,11 +24,14 @@ public class ItemsChannel extends AbstractChannel {
                     itemsPacket.writeUTF(item.getId());
                     itemsPacket.writeUTF(JsonUtils.serializeItem(item).toString());
                 }
-                MESSAGES.addAll(splitMessage(itemsPacket.toByteArray()));
+                messages.addAll(splitMessage(itemsPacket.toByteArray()));
             }
         }
+    }
 
-        for (byte[] message : MESSAGES) {
+    @Override
+    public void onRegisterConnection(@Nonnull Player player) {
+        for (byte[] message : messages) {
             sendMessage(player, message);
         }
     }
