@@ -13,12 +13,11 @@ public record Condition(String property, String condition, String value) {
     public static final String CONDITION_LESS_EQUALS = "<=";
     public static final String CONDITION_EQUALS = "=";
     public static final String CONDITION_NOT_EQUALS = "!=";
-    public static final String CONDITION_EXISTS = "?";
 
     public static final Condition TRUE = new Condition("", "", "");
     public static final Condition FALSE = new Condition("", "", "");
     public static final Condition HAS_ENERGY = new Condition(Property.ENERGY, CONDITION_NOT_EQUALS, "0");
-    public static final Condition HAS_TICKS = new Condition(Property.TICKS, CONDITION_EXISTS, "0.0");
+    public static final Condition HAS_TICKS = new Condition(Property.TICKS, CONDITION_GREATER, "0");
 
     public Condition(String property, String condition, Number value) {
         this(property, condition, String.valueOf(value));

@@ -133,8 +133,8 @@ public class DefaultCategories {
             builder.display(DefaultDisplays.ANCIENT_ALTAR);
         });
         event.registerItemExporter(SolarGenerator.class, (generator, builder) -> {
-            builder.recipe(new RecipeBuilder().sfTicks(0).energy(generator.getDayEnergy()).label(REQUIRES_DAY));
-            builder.recipe(new RecipeBuilder().sfTicks(0).energy(generator.getNightEnergy()).label(REQUIRES_NIGHT));
+            builder.recipe(new RecipeBuilder().sfTicks(1).energy(generator.getDayEnergy()).label(REQUIRES_DAY));
+            builder.recipe(new RecipeBuilder().sfTicks(1).energy(generator.getNightEnergy()).label(REQUIRES_NIGHT));
         });
         event.registerItemExporter(GoldPan.class, (pan, builder) -> {
             for (Material input : pan.getInputMaterials()) {
@@ -215,7 +215,7 @@ public class DefaultCategories {
             builder.energy(-binder.getEnergyConsumption());
         });
         event.registerItemExporter(ExpCollector.class, (collector, builder) -> {
-            builder.recipe(new RecipeBuilder().input("$:1").output(SlimefunItems.FILLED_FLASK_OF_KNOWLEDGE).sfTicks(0));
+            builder.recipe(new RecipeBuilder().input("$:1").output(SlimefunItems.FILLED_FLASK_OF_KNOWLEDGE).sfTicks(1));
             builder.energy(-collector.getEnergyConsumption());
         });
         event.registerItemExporter(ChargingBench.class, (bench, builder) -> {
@@ -282,11 +282,11 @@ public class DefaultCategories {
         });
         event.registerItemExporter(ProduceCollector.class, (collector, builder) -> {
             builder.recipe(new RecipeBuilder().input(EntityType.COW, false, 1, 0)
-                    .input(Material.BUCKET).output(Material.MILK_BUCKET).sfTicks(0));
+                    .input(Material.BUCKET).output(Material.MILK_BUCKET).sfTicks(1));
             builder.recipe(new RecipeBuilder().input(EntityType.GOAT, false, 1, 0)
-                    .input(Material.BUCKET).output(Material.MILK_BUCKET).sfTicks(0));
+                    .input(Material.BUCKET).output(Material.MILK_BUCKET).sfTicks(1));
             builder.recipe(new RecipeBuilder().input(EntityType.MOOSHROOM, false, 1, 0)
-                    .input(Material.BOWL).output(Material.MUSHROOM_STEW).sfTicks(0));
+                    .input(Material.BOWL).output(Material.MUSHROOM_STEW).sfTicks(1));
             builder.speed(collector.getSpeed());
             builder.energy(-collector.getEnergyConsumption());
         });
@@ -302,27 +302,27 @@ public class DefaultCategories {
             for (OrganicFood organicFood : matching(OrganicFood.class)) {
                 builder.recipe(new RecipeBuilder().input(EntityType.COW, true, 1, 1)
                         .input(organicFood.getItem())
-                        .output(EntityType.COW, false, 1, 1).sfTicks(0));
+                        .output(EntityType.COW, false, 1, 1).sfTicks(1));
             }
             builder.energy(-ReflectionUtils.getStaticField(AnimalGrowthAccelerator.class, "ENERGY_CONSUMPTION", 14));
         });
         event.registerItemExporter(TreeGrowthAccelerator.class, (accelerator, builder) -> {
             for (OrganicFertilizer fertilizer : matching(OrganicFertilizer.class)) {
-                builder.recipe(new RecipeBuilder().input(TREE_INPUT).input(fertilizer.getItem()).output(TREE_OUTPUT).sfTicks(0));
+                builder.recipe(new RecipeBuilder().input(TREE_INPUT).input(fertilizer.getItem()).output(TREE_OUTPUT).sfTicks(1));
             }
             builder.energy(-ReflectionUtils.getStaticField(TreeGrowthAccelerator.class, "ENERGY_CONSUMPTION", 24));
         });
         event.registerItemExporter(CropGrowthAccelerator.class, (accelerator, builder) -> {
             for (OrganicFertilizer fertilizer : matching(OrganicFertilizer.class)) {
-                builder.recipe(new RecipeBuilder().input(CROP_INPUT).input(fertilizer.getItem()).output(CROP_OUTPUT).sfTicks(0));
+                builder.recipe(new RecipeBuilder().input(CROP_INPUT).input(fertilizer.getItem()).output(CROP_OUTPUT).sfTicks(1));
             }
             builder.speed(accelerator.getSpeed());
             builder.energy(-accelerator.getEnergyConsumption());
         });
         event.registerItemExporter(FluidPump.class, (pump, builder) -> {
-            builder.recipe(new RecipeBuilder().input(Fluid.WATER, 1).input(Material.BUCKET).output(Material.WATER_BUCKET).sfTicks(0));
-            builder.recipe(new RecipeBuilder().input(Fluid.WATER, 1).input(Material.GLASS_BOTTLE).output(Utils.waterBottle()).sfTicks(0));
-            builder.recipe(new RecipeBuilder().input(Fluid.LAVA, 1).input(Material.BUCKET).output(Material.LAVA_BUCKET).sfTicks(0));
+            builder.recipe(new RecipeBuilder().input(Fluid.WATER, 1).input(Material.BUCKET).output(Material.WATER_BUCKET).sfTicks(1));
+            builder.recipe(new RecipeBuilder().input(Fluid.WATER, 1).input(Material.GLASS_BOTTLE).output(Utils.waterBottle()).sfTicks(1));
+            builder.recipe(new RecipeBuilder().input(Fluid.LAVA, 1).input(Material.BUCKET).output(Material.LAVA_BUCKET).sfTicks(1));
             builder.energy(-ReflectionUtils.getStaticField(FluidPump.class, "ENERGY_CONSUMPTION", 32));
         });
         event.registerItemExporter(IronGolemAssembler.class, (assembler, builder) -> {
@@ -452,7 +452,7 @@ public class DefaultCategories {
         final float charge = bench.getEnergyConsumption() / 2.0F;
         final ItemStack charged = sfItemStack.getItem().getItem().clone();
         rechargeable.addItemCharge(charged, charge);
-        builder.recipe(new RecipeBuilder().input(sfItemStack).output(new ComplexItem(charged)).sfTicks(0));
+        builder.recipe(new RecipeBuilder().input(sfItemStack).output(new ComplexItem(charged)).sfTicks(1));
     }
 
     private static <I extends SlimefunItem> List<I> matching(Class<I> clazz) {

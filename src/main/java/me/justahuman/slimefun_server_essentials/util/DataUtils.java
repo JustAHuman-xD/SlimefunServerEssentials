@@ -78,7 +78,7 @@ public class DataUtils {
     }
 
     public static void addPositive(ByteArrayDataOutput output, Integer value) {
-        if (value != null && value >= 0) {
+        if (value != null && value > 0) {
             output.writeBoolean(true);
             output.writeInt(value);
         } else {
