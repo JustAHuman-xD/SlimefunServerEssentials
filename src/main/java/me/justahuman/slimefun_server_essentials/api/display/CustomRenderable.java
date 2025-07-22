@@ -1,11 +1,14 @@
 package me.justahuman.slimefun_server_essentials.api.display;
 
+import com.google.common.io.ByteArrayDataOutput;
 import com.google.gson.JsonObject;
 import me.justahuman.slimefun_server_essentials.api.Condition;
 
-public interface CustomRenderable {
+public sealed interface CustomRenderable permits SimpleRenderable, ConditionalRenderable, OptionalRenderable {
     int width();
     int height();
+
+    void toBytes(ByteArrayDataOutput output);
     JsonObject toJson();
 
     CustomRenderable withTooltip(String... tooltip);

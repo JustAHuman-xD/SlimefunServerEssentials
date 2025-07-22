@@ -1,18 +1,12 @@
 package me.justahuman.slimefun_server_essentials.api.display;
 
-import com.google.gson.JsonArray;
+import com.google.common.io.ByteArrayDataOutput;
 import com.google.gson.JsonObject;
-import me.justahuman.slimefun_server_essentials.implementation.DisplayComponentTypes;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class ComponentType {
+public sealed class ComponentType permits FillingComponentType {
     protected final String id;
     protected final CustomRenderable light;
     protected final CustomRenderable dark;
-    protected final List<String> tooltip = new ArrayList<>();
-    private boolean registered = false;
 
     public ComponentType(String id, CustomRenderable light, CustomRenderable dark) {
         this.id = id;
@@ -48,8 +42,11 @@ public class ComponentType {
         return Math.max(this.light.height(), this.dark.height());
     }
 
-    public void addTooltip(String tooltip) {
-        this.tooltip.add(tooltip);
+    public void toBytes(ByteArrayDataOutput output) {
+        output.writeUTF(this.id);
+        this.light.toBytes(output);
+        this.dark.toBytes(output);
+        output.writeBoolean(false);
     }
 
     public JsonObject toJson() {
@@ -57,19 +54,6 @@ public class ComponentType {
         json.addProperty("id", this.id);
         json.add("light", this.light.toJson());
         json.add("dark", this.dark.toJson());
-        if (!this.tooltip.isEmpty()) {
-            JsonArray tooltip = new JsonArray();
-            this.tooltip.forEach(tooltip::add);
-            json.add("tooltip", tooltip);
-        }
         return json;
-    }
-
-    public ComponentType register() {
-        if (!this.registered) {
-            DisplayComponentTypes.register(this.id, this.toJson());
-            this.registered = true;
-        }
-        return this;
     }
 }

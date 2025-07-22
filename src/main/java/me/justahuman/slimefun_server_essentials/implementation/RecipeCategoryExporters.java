@@ -1,6 +1,5 @@
 package me.justahuman.slimefun_server_essentials.implementation;
 
-import com.google.gson.JsonObject;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
@@ -18,23 +17,22 @@ public class RecipeCategoryExporters {
     private static final List<ItemRecipeCategoryExporter<? extends SlimefunItem>> ITEM_CLASS_EXPORTERS = new ArrayList<>();
     private static final Map<RecipeType, BiConsumer<SlimefunItem, RecipeCategoryBuilder>> TYPE_EXPORTERS = new HashMap<>();
 
-    public static JsonObject exportItemsRecipes(SlimefunItem slimefunItem) {
+    public static RecipeCategoryBuilder itemsRecipesCategory(SlimefunItem slimefunItem) {
         BiConsumer<SlimefunItem, RecipeCategoryBuilder> itemExporter = ITEM_EXPORTERS.get(slimefunItem);
         if (itemExporter != null) {
-            RecipeCategoryBuilder builder = new RecipeCategoryBuilder();
+            RecipeCategoryBuilder builder = new RecipeCategoryBuilder(slimefunItem.getId());
             itemExporter.accept(slimefunItem, builder);
-            return builder.isEmpty() ? null : builder.build();
+            return builder.isEmpty() ? null : builder;
         }
 
         for (ItemRecipeCategoryExporter<? extends SlimefunItem> classExporter : ITEM_CLASS_EXPORTERS) {
             RecipeCategoryBuilder exported = classExporter.tryExport(slimefunItem);
             if (exported != null && !exported.isEmpty()) {
-                return exported.build();
+                return exported;
             }
         }
         return null;
     }
-
 
     public static void exportTypeRecipes(SlimefunItem slimefunItem, RecipeCategoryBuilder builder) {
         BiConsumer<SlimefunItem, RecipeCategoryBuilder> exporter = TYPE_EXPORTERS.get(slimefunItem.getRecipeType());
@@ -71,10 +69,16 @@ public class RecipeCategoryExporters {
         TYPE_EXPORTERS.put(type, exporter.andThen((ignored, builder) -> builder.item(item)));
     }
 
+    public static void clear() {
+        ITEM_EXPORTERS.clear();
+        ITEM_CLASS_EXPORTERS.clear();
+        TYPE_EXPORTERS.clear();
+    }
+
     private record ItemRecipeCategoryExporter<I extends SlimefunItem>(Class<I> clazz, BiConsumer<I, RecipeCategoryBuilder> exporter) {
         public RecipeCategoryBuilder tryExport(SlimefunItem slimefunItem) {
             if (clazz.isInstance(slimefunItem)) {
-                RecipeCategoryBuilder builder = new RecipeCategoryBuilder();
+                RecipeCategoryBuilder builder = new RecipeCategoryBuilder(slimefunItem.getId());
                 exporter.accept(clazz.cast(slimefunItem), builder);
                 return builder;
             }

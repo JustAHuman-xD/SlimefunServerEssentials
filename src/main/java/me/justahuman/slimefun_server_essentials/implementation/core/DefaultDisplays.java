@@ -7,7 +7,6 @@ import me.justahuman.slimefun_server_essentials.api.display.AbstractDisplayBuild
 import me.justahuman.slimefun_server_essentials.api.display.GridDisplayBuilder;
 import me.justahuman.slimefun_server_essentials.api.display.RecipeDisplayBuilder;
 import me.justahuman.slimefun_server_essentials.api.display.SimpleRenderable;
-import me.justahuman.slimefun_server_essentials.implementation.RecipeDisplays;
 
 import java.util.function.Supplier;
 
@@ -86,30 +85,19 @@ public enum DefaultDisplays {
     }),
     SMELTERY("smeltery", () -> new GridDisplayBuilder(3, 2, 1, 1));
 
-    private static boolean registered = false;
-
     private final String id;
-    private final JsonObject display;
+    private final AbstractDisplayBuilder<?> display;
 
     <B extends AbstractDisplayBuilder<B>> DefaultDisplays(String id, Supplier<B> displayProvider) {
         this.id = id;
-        this.display = displayProvider.get().build();
+        this.display = displayProvider.get();
     }
 
     public String id() {
         return this.id;
     }
 
-    public JsonObject display() {
+    public AbstractDisplayBuilder<?> display() {
         return this.display;
-    }
-
-    public static void register() {
-        if (!registered) {
-            for (DefaultDisplays display : values()) {
-                RecipeDisplays.register(display.id, display.display);
-            }
-            registered = true;
-        }
     }
 }

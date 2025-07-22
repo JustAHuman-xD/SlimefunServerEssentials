@@ -1,9 +1,14 @@
 package me.justahuman.slimefun_server_essentials.api.display;
 
+import com.google.common.io.ByteArrayDataOutput;
 import com.google.gson.JsonObject;
 import me.justahuman.slimefun_server_essentials.api.Condition;
 
-public record ConditionalRenderable(CustomRenderable passedRenderable, CustomRenderable failedRenderable, Condition condition) implements CustomRenderable {
+public record ConditionalRenderable(
+        CustomRenderable passedRenderable,
+        CustomRenderable failedRenderable,
+        Condition condition
+) implements CustomRenderable {
     @Override
     public int width() {
         return Math.max(this.passedRenderable.width(), this.failedRenderable.width());
@@ -12,6 +17,15 @@ public record ConditionalRenderable(CustomRenderable passedRenderable, CustomRen
     @Override
     public int height() {
         return Math.max(this.passedRenderable.height(), this.failedRenderable.height());
+    }
+
+    @Override
+    public void toBytes(ByteArrayDataOutput output) {
+        output.writeBoolean(true);
+        output.writeBoolean(true);
+        this.passedRenderable.toBytes(output);
+        this.failedRenderable.toBytes(output);
+        this.condition.toBytes(output);
     }
 
     @Override

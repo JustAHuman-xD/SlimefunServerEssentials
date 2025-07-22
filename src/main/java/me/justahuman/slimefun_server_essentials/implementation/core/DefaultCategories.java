@@ -1,6 +1,9 @@
 package me.justahuman.slimefun_server_essentials.implementation.core;
 
+import io.github.bakedlibs.dough.items.CustomItemStack;
+import io.github.thebusybiscuit.slimefun4.api.items.ItemSetting;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
 import io.github.thebusybiscuit.slimefun4.core.attributes.Rechargeable;
 import io.github.thebusybiscuit.slimefun4.core.multiblocks.MultiBlockMachine;
@@ -39,10 +42,11 @@ import io.github.thebusybiscuit.slimefun4.implementation.items.multiblocks.OreWa
 import io.github.thebusybiscuit.slimefun4.implementation.items.multiblocks.miner.IndustrialMiner;
 import io.github.thebusybiscuit.slimefun4.implementation.items.tools.GoldPan;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.RandomizedSet;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
+import io.github.thebusybiscuit.slimefun4.utils.tags.SlimefunTag;
 import me.justahuman.slimefun_server_essentials.api.RecipeBuilder;
 import me.justahuman.slimefun_server_essentials.api.RecipeCategoryBuilder;
 import me.justahuman.slimefun_server_essentials.api.ComplexItem;
+import me.justahuman.slimefun_server_essentials.api.event.SlimefunEssentialsRegisterEvent;
 import me.justahuman.slimefun_server_essentials.util.ReflectionUtils;
 import me.justahuman.slimefun_server_essentials.util.Utils;
 import me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer;
@@ -64,25 +68,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static me.justahuman.slimefun_server_essentials.implementation.RecipeCategoryExporters.registerItemExporter;
-import static me.justahuman.slimefun_server_essentials.implementation.RecipeCategoryExporters.registerTypeExporter;
 import static me.justahuman.slimefun_server_essentials.implementation.core.DefaultComponentTypes.*;
 
 public class DefaultCategories {
     private static final ThreadLocalRandom RANDOM = ThreadLocalRandom.current();
-    private static final ItemStack TREE_INPUT = new CustomItemStack(Material.OAK_SAPLING, "&eAge 0 Sapling");
-    private static final ItemStack TREE_OUTPUT = new CustomItemStack(Material.OAK_SAPLING, "&eAge 1 Sapling");
-    private static final ItemStack CROP_INPUT = new CustomItemStack(Material.POTATO, "&eStage 0 Growth");
-    private static final ItemStack CROP_OUTPUT = new CustomItemStack(Material.POTATO, "&eStage 1 Growth");
-    private static boolean registered = false;
+    private static final ItemStack TREE_INPUT = CustomItemStack.create(Material.OAK_SAPLING, "&eAge 0 Sapling");
+    private static final ItemStack TREE_OUTPUT = CustomItemStack.create(Material.OAK_SAPLING, "&eAge 1 Sapling");
+    private static final ItemStack CROP_INPUT = CustomItemStack.create(Material.POTATO, "&eStage 0 Growth");
+    private static final ItemStack CROP_OUTPUT = CustomItemStack.create(Material.POTATO, "&eStage 1 Growth");
 
-    public static void register() {
-        if (registered) {
-            return;
-        }
-        registered = true;
-
-        registerItemExporter(MultiBlockMachine.class, (multiblock, builder) -> {
+    public static void register(SlimefunEssentialsRegisterEvent event) {
+        event.registerItemExporter(MultiBlockMachine.class, (multiblock, builder) -> {
             // Slimefun saves it as Input, Output, Input, Output, So we skip on the Outputs
             ItemStack[] inputs = null;
             final List<ItemStack[]> multiBlockRecipes = multiblock.getRecipes();
@@ -96,13 +92,13 @@ public class DefaultCategories {
             }
             builder.display(DefaultDisplays.GRID_3X3);
         });
-        registerItemExporter(AbstractEnergyProvider.class, (provider, builder) -> {
+        event.registerItemExporter(AbstractEnergyProvider.class, (provider, builder) -> {
             final Set<MachineFuel> fuelTypes = provider.getFuelTypes();
             for (MachineFuel machineFuel : fuelTypes) {
                 final List<ItemStack> inputs = new ArrayList<>(List.of(machineFuel.getInput()));
                 if (provider instanceof Reactor reactor && reactor.getCoolant() != null) {
                     for (int count = (int) Math.ceil(machineFuel.getTicks() / 50D); count != 0; count -= Math.min(count, 64)) {
-                        inputs.add(new CustomItemStack(reactor.getCoolant(), Math.min(count, 64)));
+                        inputs.add(CustomItemStack.create(reactor.getCoolant(), Math.min(count, 64)));
                     }
                 }
                 builder.recipe(new RecipeBuilder().sfTicks(machineFuel.getTicks()).inputs(inputs).output(machineFuel.getOutput()));
@@ -113,11 +109,11 @@ public class DefaultCategories {
             }
             builder.energy(provider.getEnergyProduction());
         });
-        registerItemExporter(AContainer.class, (container, builder) -> {
+        event.registerItemExporter(AContainer.class, (container, builder) -> {
             for (MachineRecipe machineRecipe : container.getMachineRecipes()) {
                 final ItemStack[] inputs = machineRecipe.getInput();
                 final ItemStack[] outputs = machineRecipe.getOutput();
-                builder.recipe(new RecipeBuilder().sfTicks(machineRecipe.getTicks()).inputs(inputs).outputs(outputs));
+                builder.recipe(new RecipeBuilder().sfTicks(machineRecipe.getTicks() * container.getSpeed()).inputs(inputs).outputs(outputs));
             }
 
             if (container instanceof ElectricSmeltery) {
@@ -126,22 +122,21 @@ public class DefaultCategories {
             builder.speed(container.getSpeed());
             builder.energy(-container.getEnergyConsumption());
         });
-        registerItemExporter(AncientAltar.class, (altar, builder) -> {
+        event.registerItemExporter(AncientAltar.class, (altar, builder) -> {
             for (AltarRecipe altarRecipe : altar.getRecipes()) {
                 final List<ItemStack> i = altarRecipe.getInput();
                 // Slimefun Ancient Altar Recipes are put in this Strange Order, don't ask me Why
                 final ItemStack[] inputs = new ItemStack[] { i.get(0), i.get(1), i.get(2), i.get(7), altarRecipe.getCatalyst(), i.get(3), i.get(6), i.get(5), i.get(4) };
-                // An Ancient Altar Task goes through 36 "stages" before completion, the delay between each is 8 ticks.
-                // TODO: account for different configs
-                builder.recipe(new RecipeBuilder().ticks(36 * 8).inputs(inputs).output(altarRecipe.getOutput()));
+                // An Ancient Altar Task goes through 36 "stages" before completion, the delay between each is the step delay.
+                builder.recipe(new RecipeBuilder().ticks(36 * altar.getStepDelay()).inputs(inputs).output(altarRecipe.getOutput()));
             }
             builder.display(DefaultDisplays.ANCIENT_ALTAR);
         });
-        registerItemExporter(SolarGenerator.class, (generator, builder) -> {
-            builder.recipe(new RecipeBuilder().sfTicks(1).energy(generator.getDayEnergy()).label(REQUIRES_DAY));
-            builder.recipe(new RecipeBuilder().sfTicks(1).energy(generator.getNightEnergy()).label(REQUIRES_NIGHT));
+        event.registerItemExporter(SolarGenerator.class, (generator, builder) -> {
+            builder.recipe(new RecipeBuilder().sfTicks(0).energy(generator.getDayEnergy()).label(REQUIRES_DAY));
+            builder.recipe(new RecipeBuilder().sfTicks(0).energy(generator.getNightEnergy()).label(REQUIRES_NIGHT));
         });
-        registerItemExporter(GoldPan.class, (pan, builder) -> {
+        event.registerItemExporter(GoldPan.class, (pan, builder) -> {
             for (Material input : pan.getInputMaterials()) {
                 final RandomizedSet<ItemStack> outputs = ReflectionUtils.getField(GoldPan.class, pan, "randomizer", new RandomizedSet<>());
                 for (Map.Entry<ItemStack, Float> output : outputs.toMap().entrySet()) {
@@ -149,32 +144,32 @@ public class DefaultCategories {
                 }
             }
         });
-        registerItemExporter(AutomatedPanningMachine.class, (machine, builder) -> {
+        event.registerItemExporter(AutomatedPanningMachine.class, (machine, builder) -> {
            goldPanRecipes(builder, machine, 12, 12);
            builder.display(DefaultDisplays.GRID_3X3);
         });
-        registerItemExporter(ElectricGoldPan.class, (pan, builder) -> {
+        event.registerItemExporter(ElectricGoldPan.class, (pan, builder) -> {
            goldPanRecipes(builder, pan, 6, 8);
            builder.speed(pan.getSpeed());
            builder.energy(-pan.getEnergyConsumption());
         });
-        registerItemExporter(OreWasher.class, (washer, builder) -> {
-            final ItemStack[] dusts = ReflectionUtils.getField(washer, "dusts", new ItemStack[0]);
-            for (ItemStack dust : dusts) {
+        event.registerItemExporter(OreWasher.class, (washer, builder) -> {
+            final SlimefunItemStack[] dusts = ReflectionUtils.getArrayField(washer, "dusts", SlimefunItemStack[]::new);
+            for (SlimefunItemStack dust : dusts) {
                 builder.recipe(new RecipeBuilder().input(SlimefunItems.SIFTED_ORE).output(dust, 1F / dusts.length));
             }
             builder.recipe(new RecipeBuilder().input(new ItemStack(Material.SAND, 2)).output(SlimefunItems.SALT));
             builder.recipe(new RecipeBuilder().input(SlimefunItems.PULVERIZED_ORE).output(SlimefunItems.PURE_ORE_CLUSTER));
             builder.display(DefaultDisplays.GRID_3X3);
         });
-        registerItemExporter(ElectricDustWasher.class, (washer, builder) -> {
+        event.registerItemExporter(ElectricDustWasher.class, (washer, builder) -> {
             final OreWasher oreWasher = ReflectionUtils.getField(washer, "oreWasher", null);
             if (oreWasher == null) {
                 return;
             }
 
-            final ItemStack[] dusts = ReflectionUtils.getField(oreWasher, "dusts", new ItemStack[0]);
-            for (ItemStack dust : dusts) {
+            final SlimefunItemStack[] dusts = ReflectionUtils.getArrayField(oreWasher, "dusts", SlimefunItemStack[]::new);
+            for (SlimefunItemStack dust : dusts) {
                 builder.recipe(new RecipeBuilder().input(SlimefunItems.SIFTED_ORE).output(dust, 1F / dusts.length).sfTicks(8));
             }
             builder.recipe(new RecipeBuilder().input(new ItemStack(Material.SAND, 2)).output(SlimefunItems.SALT).sfTicks(8));
@@ -182,19 +177,19 @@ public class DefaultCategories {
             builder.speed(washer.getSpeed());
             builder.energy(-washer.getEnergyConsumption());
         });
-        registerItemExporter(GEOMiner.class, (miner, builder) -> {
+        event.registerItemExporter(GEOMiner.class, (miner, builder) -> {
             for (ItemStack output : miner.getDisplayRecipes()) {
                 builder.recipe(new RecipeBuilder().output(output).sfTicks(14));
             }
             builder.speed(miner.getSpeed());
             builder.energy(-miner.getEnergyConsumption());
         });
-        registerItemExporter(OilPump.class, (pump, builder) -> {
+        event.registerItemExporter(OilPump.class, (pump, builder) -> {
             builder.recipe(new RecipeBuilder().label("geo_scanned").input(new ItemStack(Material.BUCKET)).output(SlimefunItems.OIL_BUCKET).sfTicks(52));
             builder.speed(pump.getSpeed());
             builder.energy(-pump.getEnergyConsumption());
         });
-        registerItemExporter(AutoAnvil.class, (anvil, builder) -> {
+        event.registerItemExporter(AutoAnvil.class, (anvil, builder) -> {
             autoAnvilRecipe(anvil, builder, Material.WOODEN_HOE);
             autoAnvilRecipe(anvil, builder, Material.STONE_SHOVEL);
             autoAnvilRecipe(anvil, builder, Material.IRON_PICKAXE);
@@ -208,9 +203,9 @@ public class DefaultCategories {
             builder.speed(anvil.getSpeed());
             builder.energy(-anvil.getEnergyConsumption());
         });
-        registerItemExporter(AutoEnchanter.class, DefaultCategories::autoAbstractEnchantRecipes);
-        registerItemExporter(AutoDisenchanter.class, DefaultCategories::autoAbstractEnchantRecipes);
-        registerItemExporter(BookBinder.class, (binder, builder) -> {
+        event.registerItemExporter(AutoEnchanter.class, DefaultCategories::autoAbstractEnchantRecipes);
+        event.registerItemExporter(AutoDisenchanter.class, DefaultCategories::autoAbstractEnchantRecipes);
+        event.registerItemExporter(BookBinder.class, (binder, builder) -> {
             builder.recipe(new RecipeBuilder()
                     .input(Utils.enchant(new ItemStack(Material.ENCHANTED_BOOK), Enchantment.SHARPNESS))
                     .input(Utils.enchant(new ItemStack(Material.ENCHANTED_BOOK), Enchantment.UNBREAKING))
@@ -219,11 +214,11 @@ public class DefaultCategories {
             builder.speed(binder.getSpeed());
             builder.energy(-binder.getEnergyConsumption());
         });
-        registerItemExporter(ExpCollector.class, (collector, builder) -> {
-            builder.recipe(new RecipeBuilder().input("$:1").output(SlimefunItems.FILLED_FLASK_OF_KNOWLEDGE).sfTicks(1));
+        event.registerItemExporter(ExpCollector.class, (collector, builder) -> {
+            builder.recipe(new RecipeBuilder().input("$:1").output(SlimefunItems.FILLED_FLASK_OF_KNOWLEDGE).sfTicks(0));
             builder.energy(-collector.getEnergyConsumption());
         });
-        registerItemExporter(ChargingBench.class, (bench, builder) -> {
+        event.registerItemExporter(ChargingBench.class, (bench, builder) -> {
             chargingBenchRecipe(bench, builder, SlimefunItems.DURALUMIN_MULTI_TOOL);
             chargingBenchRecipe(bench, builder, SlimefunItems.SOLDER_MULTI_TOOL);
             chargingBenchRecipe(bench, builder, SlimefunItems.BILLON_MULTI_TOOL);
@@ -234,7 +229,7 @@ public class DefaultCategories {
             builder.speed(bench.getSpeed());
             builder.energy(-bench.getEnergyConsumption());
         });
-        registerItemExporter(AutoBrewer.class, (brewer, builder) -> {
+        event.registerItemExporter(AutoBrewer.class, (brewer, builder) -> {
             final Set<Material> basePotions = new HashSet<>(Set.of(Material.POTION, Material.SPLASH_POTION, Material.LINGERING_POTION));
             final Set<Material> modifiers = new HashSet<>(Set.of(Material.FERMENTED_SPIDER_EYE, Material.NETHER_WART, Material.GUNPOWDER, Material.DRAGON_BREATH));
             final Map<Material, PotionType> potionRecipes = ReflectionUtils.getField(brewer, "potionRecipes", new HashMap<>());
@@ -267,22 +262,35 @@ public class DefaultCategories {
                 }
             }
         });
-        registerItemExporter(IndustrialMiner.class, (miner, builder) -> {
+        event.registerItemExporter(IndustrialMiner.class, (miner, builder) -> {
+            ItemSetting<Boolean> deepslateOres = ReflectionUtils.getField(IndustrialMiner.class, miner, "canMineDeepslateOres", null);
+            ItemSetting<Boolean> ancientDebris = ReflectionUtils.getField(IndustrialMiner.class, miner, "canMineAncientDebris", null);
             for (ItemStack itemStack : miner.getDisplayRecipes()) {
-                builder.recipe(new RecipeBuilder().input(new ComplexItem(itemStack)));
+                RecipeBuilder recipe = new RecipeBuilder().complexInput(itemStack).sfTicks(12);
+                List<Material> ores = new ArrayList<>(SlimefunTag.INDUSTRIAL_MINER_ORES.getValues());
+                if (deepslateOres == null || !deepslateOres.getValue()) {
+                    ores.removeAll(SlimefunTag.DEEPSLATE_ORES.getValues());
+                }
+                if (ancientDebris == null || !ancientDebris.getValue()) {
+                    ores.remove(Material.ANCIENT_DEBRIS);
+                }
+                for (Material ore : ores) {
+                    recipe.output(ore);
+                }
+                builder.recipe(recipe);
             }
         });
-        registerItemExporter(ProduceCollector.class, (collector, builder) -> {
+        event.registerItemExporter(ProduceCollector.class, (collector, builder) -> {
             builder.recipe(new RecipeBuilder().input(EntityType.COW, false, 1, 0)
-                    .input(Material.BUCKET).output(Material.MILK_BUCKET).sfTicks(1));
+                    .input(Material.BUCKET).output(Material.MILK_BUCKET).sfTicks(0));
             builder.recipe(new RecipeBuilder().input(EntityType.GOAT, false, 1, 0)
-                    .input(Material.BUCKET).output(Material.MILK_BUCKET).sfTicks(1));
+                    .input(Material.BUCKET).output(Material.MILK_BUCKET).sfTicks(0));
             builder.recipe(new RecipeBuilder().input(EntityType.MOOSHROOM, false, 1, 0)
-                    .input(Material.BOWL).output(Material.MUSHROOM_STEW).sfTicks(1));
+                    .input(Material.BOWL).output(Material.MUSHROOM_STEW).sfTicks(0));
             builder.speed(collector.getSpeed());
             builder.energy(-collector.getEnergyConsumption());
         });
-        registerItemExporter(AutoBreeder.class, (breeder, builder) -> {
+        event.registerItemExporter(AutoBreeder.class, (breeder, builder) -> {
             for (OrganicFood organicFood : matching(OrganicFood.class)) {
                 builder.recipe(new RecipeBuilder().input(EntityType.COW, false, 2, 0)
                         .input(organicFood.getItem())
@@ -290,45 +298,45 @@ public class DefaultCategories {
             }
             builder.energy(-ReflectionUtils.getStaticField(AutoBreeder.class, "ENERGY_CONSUMPTION", 60));
         });
-        registerItemExporter(AnimalGrowthAccelerator.class, (accelerator, builder) -> {
+        event.registerItemExporter(AnimalGrowthAccelerator.class, (accelerator, builder) -> {
             for (OrganicFood organicFood : matching(OrganicFood.class)) {
                 builder.recipe(new RecipeBuilder().input(EntityType.COW, true, 1, 1)
                         .input(organicFood.getItem())
-                        .output(EntityType.COW, false, 1, 1).sfTicks(1));
+                        .output(EntityType.COW, false, 1, 1).sfTicks(0));
             }
             builder.energy(-ReflectionUtils.getStaticField(AnimalGrowthAccelerator.class, "ENERGY_CONSUMPTION", 14));
         });
-        registerItemExporter(TreeGrowthAccelerator.class, (accelerator, builder) -> {
+        event.registerItemExporter(TreeGrowthAccelerator.class, (accelerator, builder) -> {
             for (OrganicFertilizer fertilizer : matching(OrganicFertilizer.class)) {
-                builder.recipe(new RecipeBuilder().input(TREE_INPUT).input(fertilizer.getItem()).output(TREE_OUTPUT).sfTicks(1));
+                builder.recipe(new RecipeBuilder().input(TREE_INPUT).input(fertilizer.getItem()).output(TREE_OUTPUT).sfTicks(0));
             }
             builder.energy(-ReflectionUtils.getStaticField(TreeGrowthAccelerator.class, "ENERGY_CONSUMPTION", 24));
         });
-        registerItemExporter(CropGrowthAccelerator.class, (accelerator, builder) -> {
+        event.registerItemExporter(CropGrowthAccelerator.class, (accelerator, builder) -> {
             for (OrganicFertilizer fertilizer : matching(OrganicFertilizer.class)) {
-                builder.recipe(new RecipeBuilder().input(CROP_INPUT).input(fertilizer.getItem()).output(CROP_OUTPUT).sfTicks(1));
+                builder.recipe(new RecipeBuilder().input(CROP_INPUT).input(fertilizer.getItem()).output(CROP_OUTPUT).sfTicks(0));
             }
             builder.speed(accelerator.getSpeed());
             builder.energy(-accelerator.getEnergyConsumption());
         });
-        registerItemExporter(FluidPump.class, (pump, builder) -> {
-            builder.recipe(new RecipeBuilder().input(Fluid.WATER, 1).input(Material.BUCKET).output(Material.WATER_BUCKET).sfTicks(1));
-            builder.recipe(new RecipeBuilder().input(Fluid.WATER, 1).input(Material.GLASS_BOTTLE).output(Utils.waterBottle()).sfTicks(1));
-            builder.recipe(new RecipeBuilder().input(Fluid.LAVA, 1).input(Material.BUCKET).output(Material.LAVA_BUCKET).sfTicks(1));
+        event.registerItemExporter(FluidPump.class, (pump, builder) -> {
+            builder.recipe(new RecipeBuilder().input(Fluid.WATER, 1).input(Material.BUCKET).output(Material.WATER_BUCKET).sfTicks(0));
+            builder.recipe(new RecipeBuilder().input(Fluid.WATER, 1).input(Material.GLASS_BOTTLE).output(Utils.waterBottle()).sfTicks(0));
+            builder.recipe(new RecipeBuilder().input(Fluid.LAVA, 1).input(Material.BUCKET).output(Material.LAVA_BUCKET).sfTicks(0));
             builder.energy(-ReflectionUtils.getStaticField(FluidPump.class, "ENERGY_CONSUMPTION", 32));
         });
-        registerItemExporter(IronGolemAssembler.class, (assembler, builder) -> {
+        event.registerItemExporter(IronGolemAssembler.class, (assembler, builder) -> {
             builder.recipe(new RecipeBuilder().input(Material.PUMPKIN).input(Material.IRON_BLOCK, 4).output(EntityType.IRON_GOLEM, false, 1, 1).sfTicks(60));
             builder.energy(-assembler.getEnergyConsumption());
         });
-        registerItemExporter(WitherAssembler.class, (assembler, builder) -> {
+        event.registerItemExporter(WitherAssembler.class, (assembler, builder) -> {
             builder.recipe(new RecipeBuilder().input(Material.WITHER_SKELETON_SKULL, 3).input(Material.SOUL_SAND, 4).output(EntityType.WITHER, false, 1, 1).sfTicks(60));
             builder.energy(-assembler.getEnergyConsumption());
         });
-        registerItemExporter(SlimefunItems.CLIMBING_PICK, (item, builder) -> {});
-        registerTypeExporter(RecipeType.BARTER_DROP, (item, builder) ->
+        event.registerItemExporter(SlimefunItems.CLIMBING_PICK, (item, builder) -> {});
+        event.registerTypeExporter(RecipeType.BARTER_DROP, (item, builder) ->
                 builder.recipe(new RecipeBuilder().input(EntityType.PIGLIN, false, 1, 0).input(Material.GOLD_INGOT).output(item.getRecipeOutput())));
-        registerTypeExporter(RecipeType.MOB_DROP, (item, builder) -> {
+        event.registerTypeExporter(RecipeType.MOB_DROP, (item, builder) -> {
             if (item instanceof BasicCircuitBoard board && board.isDroppedFromGolems()) {
                 builder.recipe(new RecipeBuilder().input(EntityType.IRON_GOLEM, false, 1, 0).output(board.getRecipeOutput(), board.getMobDropChance() / 100F));
                 return;
@@ -336,8 +344,8 @@ public class DefaultCategories {
             builder.recipe(new RecipeBuilder().inputs(item.getRecipe()).output(item.getRecipeOutput()));
             builder.display(DefaultDisplays.GRID_3X3);
         });
-        registerTypeExporter(RecipeType.MULTIBLOCK, DefaultCategories::defaultTypeHandler);
-        registerTypeExporter(RecipeType.INTERACT, DefaultCategories::defaultTypeHandler);
+        event.registerTypeExporter(RecipeType.MULTIBLOCK, DefaultCategories::defaultTypeHandler);
+        event.registerTypeExporter(RecipeType.INTERACT, DefaultCategories::defaultTypeHandler);
     }
 
     private static void defaultTypeHandler(SlimefunItem item, RecipeCategoryBuilder builder) {
@@ -436,15 +444,15 @@ public class DefaultCategories {
         return applicable;
     }
 
-    private static void chargingBenchRecipe(ChargingBench bench, RecipeCategoryBuilder builder, ItemStack itemStack) {
-        if (!(SlimefunItem.getByItem(itemStack) instanceof Rechargeable rechargeable)) {
+    private static void chargingBenchRecipe(ChargingBench bench, RecipeCategoryBuilder builder, SlimefunItemStack sfItemStack) {
+        if (!(sfItemStack.getItem() instanceof Rechargeable rechargeable)) {
             return;
         }
 
         final float charge = bench.getEnergyConsumption() / 2.0F;
-        final ItemStack charged = itemStack.clone();
+        final ItemStack charged = sfItemStack.getItem().getItem().clone();
         rechargeable.addItemCharge(charged, charge);
-        builder.recipe(new RecipeBuilder().input(itemStack).output(new ComplexItem(charged)).sfTicks(1));
+        builder.recipe(new RecipeBuilder().input(sfItemStack).output(new ComplexItem(charged)).sfTicks(0));
     }
 
     private static <I extends SlimefunItem> List<I> matching(Class<I> clazz) {

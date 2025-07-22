@@ -1,9 +1,17 @@
 package me.justahuman.slimefun_server_essentials.api.display;
 
+import com.google.common.io.ByteArrayDataOutput;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import me.justahuman.slimefun_server_essentials.util.DataUtils;
 
-public record SimpleRenderable(String identifier, int width, int height, int u, int v, int textureWidth, int textureHeight, String... tooltip) implements CustomRenderable {
+public record SimpleRenderable(
+        String identifier,
+        int width, int height,
+        int u, int v,
+        int textureWidth, int textureHeight,
+        String... tooltip
+) implements CustomRenderable {
     public static final String WIDGETS = "slimefun_essentials:textures/gui/widgets.png";
     public static final String WIDGETS_DARK = "slimefun_essentials:textures/gui/widgets_dark.png";
     public static final SimpleRenderable DISPENSER_SLOT = new SimpleRenderable(WIDGETS, 18, 18, 0, 0);
@@ -11,6 +19,19 @@ public record SimpleRenderable(String identifier, int width, int height, int u, 
 
     public SimpleRenderable(String identifier, int width, int height, int u, int v, String... tooltip) {
         this(identifier, width, height, u, v, 256, 256, tooltip);
+    }
+
+    @Override
+    public void toBytes(ByteArrayDataOutput output) {
+        output.writeBoolean(false);
+        DataUtils.add(output, identifier, WIDGETS);
+        output.writeInt(width);
+        output.writeInt(height);
+        DataUtils.add(output, u, 0);
+        DataUtils.add(output, v, 0);
+        DataUtils.add(output, textureWidth, 256);
+        DataUtils.add(output, textureHeight, 256);
+        DataUtils.addTooltip(output, tooltip);
     }
 
     public JsonObject toJson() {

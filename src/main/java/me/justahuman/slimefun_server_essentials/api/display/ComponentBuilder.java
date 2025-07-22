@@ -1,8 +1,10 @@
 package me.justahuman.slimefun_server_essentials.api.display;
 
+import com.google.common.io.ByteArrayDataOutput;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import me.justahuman.slimefun_server_essentials.api.OffsetBuilder;
+import me.justahuman.slimefun_server_essentials.util.DataUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +69,25 @@ public class ComponentBuilder {
         return this;
     }
 
-    public JsonObject build() {
+    public void toBytes(ByteArrayDataOutput output) {
+        if (type == null || x == -1 || y == -1) {
+            throw new IllegalArgumentException("Missing one or more required properties! (type: %s, x: %s, y: %s)".formatted(type, x, y));
+        }
+
+        output.writeUTF(type.id());
+        output.writeInt(x);
+        output.writeInt(y);
+
+        DataUtils.add(output, index, -1);
+        output.writeBoolean(this.output);
+        output.writeBoolean(renderable != null);
+        if (renderable != null) {
+            renderable.toBytes(output);
+        }
+        DataUtils.addArray(output, tooltip);
+    }
+
+    public JsonObject toJson() {
         JsonObject component = new JsonObject();
         if (type == null || x == -1 || y == -1) {
             throw new IllegalArgumentException("Missing one or more required properties! (type: %s, x: %s, y: %s)".formatted(type, x, y));

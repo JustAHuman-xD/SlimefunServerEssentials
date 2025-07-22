@@ -26,7 +26,6 @@ public class LoadingStateChannel extends AbstractChannel {
         SlimefunServerEssentials.getItemsChannel().onRegisterConnection(player);
         SlimefunServerEssentials.getRecipeCategoriesChannel().onRegisterConnection(player);
         SlimefunServerEssentials.getRecipeDisplaysChannel().onRegisterConnection(player);
-        players.add(player.getUniqueId());
     }
 
     @Override

@@ -1,17 +1,16 @@
 package me.justahuman.slimefun_server_essentials.api.display;
 
+import com.google.common.io.ByteArrayDataOutput;
 import com.google.gson.JsonObject;
 import me.justahuman.slimefun_server_essentials.api.Condition;
 
-public class FillingComponentType extends ComponentType {
-    public static final String RECIPE_TIME = "%time_millis%";
-
-    protected final CustomRenderable lightFill;
-    protected final CustomRenderable darkFill;
-    protected final String timeToFill;
-    protected final boolean horizontal;
-    protected final Condition emptyToFull;
-    protected final Condition startToEnd;
+public final class FillingComponentType extends ComponentType {
+    private final CustomRenderable lightFill;
+    private final CustomRenderable darkFill;
+    private final String timeToFill;
+    private final boolean horizontal;
+    private final Condition emptyToFull;
+    private final Condition startToEnd;
 
     public FillingComponentType(String id, CustomRenderable light, CustomRenderable lightFill, CustomRenderable dark, CustomRenderable darkFill, int width, int height, int millis, boolean horizontal) {
         this(id, light, lightFill, dark, darkFill, width, height, String.valueOf(millis), horizontal, Condition.TRUE, Condition.TRUE);
@@ -25,6 +24,20 @@ public class FillingComponentType extends ComponentType {
         this.horizontal = horizontal;
         this.emptyToFull = emptyToFull;
         this.startToEnd = startToEnd;
+    }
+
+    @Override
+    public void toBytes(ByteArrayDataOutput output) {
+        output.writeUTF(this.id);
+        this.light.toBytes(output);
+        this.dark.toBytes(output);
+        output.writeBoolean(true);
+        this.lightFill.toBytes(output);
+        this.darkFill.toBytes(output);
+        output.writeUTF(this.timeToFill);
+        output.writeBoolean(this.horizontal);
+        this.emptyToFull.toBytes(output);
+        this.startToEnd.toBytes(output);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package me.justahuman.slimefun_server_essentials.api.display;
 
+import com.google.common.io.ByteArrayDataOutput;
 import com.google.gson.JsonObject;
 import me.justahuman.slimefun_server_essentials.api.Condition;
 
@@ -12,6 +13,14 @@ public record OptionalRenderable(CustomRenderable renderable, Condition conditio
     @Override
     public int height() {
         return this.renderable.height();
+    }
+
+    @Override
+    public void toBytes(ByteArrayDataOutput output) {
+        output.writeBoolean(true);
+        output.writeBoolean(false);
+        this.renderable.toBytes(output);
+        this.condition.toBytes(output);
     }
 
     @Override

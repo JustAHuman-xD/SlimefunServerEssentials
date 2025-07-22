@@ -1,16 +1,19 @@
 package me.justahuman.slimefun_server_essentials.api.display;
 
+import com.google.common.io.ByteArrayDataOutput;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import static me.justahuman.slimefun_server_essentials.implementation.core.DefaultComponentTypes.*;
 
 public abstract class AbstractDisplayBuilder<B extends AbstractDisplayBuilder<B>> {
-    protected final JsonArray components = new JsonArray();
     protected int width = -1;
     protected int height = -1;
+    protected final List<ComponentBuilder> components = new ArrayList<>();
     
     public B energy(Consumer<ComponentBuilder> properties) {
         return component(properties, ENERGY);
@@ -52,19 +55,38 @@ public abstract class AbstractDisplayBuilder<B extends AbstractDisplayBuilder<B>
     public B component(Consumer<ComponentBuilder> properties) {
         ComponentBuilder builder = new ComponentBuilder();
         properties.accept(builder);
-        components.add(builder.build());
+        components.add(builder);
         return (B) this;
     }
 
-    public JsonObject build() {
+    public void toBytes(ByteArrayDataOutput output) {
         if (width == -1 || height == -1) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Width and height must be set before serialization.");
+        }
+
+        output.writeInt(width);
+        output.writeInt(height);
+
+        output.writeInt(components.size());
+        for (ComponentBuilder component : components) {
+            component.toBytes(output);
+        }
+    }
+
+    public JsonObject toJson() {
+        if (width == -1 || height == -1) {
+            throw new IllegalArgumentException("Width and height must be set before building the JSON object.");
         }
 
         JsonObject jsonObject = new JsonObject();
-        jsonObject.add("components", components);
         jsonObject.addProperty("width", width);
         jsonObject.addProperty("height", height);
+
+        JsonArray components = new JsonArray();
+        for (ComponentBuilder component : this.components) {
+            components.add(component.toJson());
+        }
+        jsonObject.add("components", components);
 
         return jsonObject;
     }

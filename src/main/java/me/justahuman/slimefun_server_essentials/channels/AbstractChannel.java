@@ -16,6 +16,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,9 +34,20 @@ public abstract class AbstractChannel implements PluginMessageListener, Listener
         plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, getChannel());
     }
 
+    protected String format(String string) {
+        return string.toLowerCase(Locale.ROOT).replace(" ", "_");
+    }
+
     public abstract String getChannel();
     public void load() {}
-    public void onRegisterConnection(@Nonnull Player player) {}
+    public void onRegisterConnection(@Nonnull Player player) {
+        players.add(player.getUniqueId());
+        if (!messages.isEmpty()) {
+            for (byte[] message : messages) {
+                sendMessage(player, message);
+            }
+        }
+    }
     public void onMessageReceived(@Nonnull Player player, @Nonnull byte[] message) {}
 
     public void sendMessage(@Nonnull Player player, @Nonnull String message) {
