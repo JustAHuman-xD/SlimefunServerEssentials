@@ -9,6 +9,7 @@ import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
 import me.justahuman.slimefun_server_essentials.api.RecipeCategoryBuilder;
 import me.justahuman.slimefun_server_essentials.channels.AbstractChannel;
 import me.justahuman.slimefun_server_essentials.implementation.RecipeCategoryExporters;
+import me.justahuman.slimefun_server_essentials.util.DataUtils;
 import me.justahuman.slimefun_server_essentials.util.JsonUtils;
 import me.justahuman.slimefun_server_essentials.util.Utils;
 
@@ -33,6 +34,7 @@ public class RecipeCategoriesChannel extends AbstractChannel {
             RecipeCategoryBuilder.optimize(itemCategories);
 
             ByteArrayDataOutput itemCategoriesPacket = ByteStreams.newDataOutput();
+            DataUtils.writeVersion(itemCategoriesPacket);
             itemCategoriesPacket.writeInt(itemCategories.size());
             for (RecipeCategoryBuilder category : itemCategories) {
                 categories.add(category.getId(), category.toJson());
@@ -52,6 +54,7 @@ public class RecipeCategoriesChannel extends AbstractChannel {
             RecipeCategoryBuilder.optimize(builderMap.values());
 
             ByteArrayDataOutput typeCategoriesPacket = ByteStreams.newDataOutput();
+            DataUtils.writeVersion(typeCategoriesPacket);
             typeCategoriesPacket.writeInt(builderMap.size());
             for (RecipeCategoryBuilder category : builderMap.values()) {
                 categories.add(category.getId(), category.toJson());

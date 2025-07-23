@@ -6,6 +6,7 @@ import me.justahuman.slimefun_server_essentials.SlimefunServerEssentials;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRegisterChannelEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -91,6 +92,13 @@ public abstract class AbstractChannel implements PluginMessageListener, Listener
         }
 
         onMessageReceived(player, message);
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        UUID playerId = event.getPlayer().getUniqueId();
+        players.remove(playerId);
+        onRegisterChannel.remove(playerId);
     }
 
     public List<byte[]> splitMessage(byte[] data) {

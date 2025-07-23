@@ -12,6 +12,12 @@ import java.util.List;
 
 @UtilityClass
 public class DataUtils {
+    public static final int DATA_VERSION = 1;
+
+    public void writeVersion(ByteArrayDataOutput output) {
+        output.writeInt(DATA_VERSION);
+    }
+
     public byte[] bytes(ItemStack itemStack) {
         if (itemStack == null) {
             itemStack = new ItemStack(Material.AIR);

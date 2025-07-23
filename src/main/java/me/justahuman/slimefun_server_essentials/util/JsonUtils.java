@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class JsonUtils {
+    private static final int DATA_VERSION = 1;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     public static void deleteGenerated() {
@@ -40,7 +41,7 @@ public class JsonUtils {
         }
     }
 
-    public static void generated(String path, JsonElement element) {
+    public static void generated(String path, JsonObject element) {
         if (!path.endsWith(".json")) {
             path += ".json";
         }
@@ -62,6 +63,7 @@ public class JsonUtils {
             return;
         }
 
+        element.addProperty("data_version", DATA_VERSION);
         try(FileWriter fileWriter = new FileWriter(file);
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
             GSON.toJson(element, bufferedWriter);
