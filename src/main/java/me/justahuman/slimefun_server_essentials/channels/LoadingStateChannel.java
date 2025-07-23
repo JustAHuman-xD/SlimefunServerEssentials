@@ -22,10 +22,10 @@ public class LoadingStateChannel extends AbstractChannel {
         loadingStatePacket.writeInt(SlimefunServerEssentials.getRecipeDisplaysChannel().messages.size());
         sendMessage(player, loadingStatePacket);
 
-        SlimefunServerEssentials.getComponentTypesChannel().onRegisterConnection(player);
-        SlimefunServerEssentials.getItemsChannel().onRegisterConnection(player);
-        SlimefunServerEssentials.getRecipeCategoriesChannel().onRegisterConnection(player);
-        SlimefunServerEssentials.getRecipeDisplaysChannel().onRegisterConnection(player);
+        SlimefunServerEssentials.getComponentTypesChannel().scheduleMessages(player);
+        SlimefunServerEssentials.getItemsChannel().scheduleMessages(player);
+        SlimefunServerEssentials.getRecipeCategoriesChannel().scheduleMessages(player);
+        SlimefunServerEssentials.getRecipeDisplaysChannel().scheduleMessages(player);
     }
 
     @Override

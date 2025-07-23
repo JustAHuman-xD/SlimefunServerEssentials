@@ -14,9 +14,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,6 +28,7 @@ public abstract class AbstractChannel implements PluginMessageListener, Listener
     protected static int messageId = 0;
     protected final List<byte[]> messages = new ArrayList<>();
     protected final Set<UUID> players = new HashSet<>();
+    protected final Map<UUID, Runnable> onRegisterChannel = new HashMap<>();
 
     protected AbstractChannel() {
         final Plugin plugin = SlimefunServerEssentials.getInstance();
@@ -40,12 +43,15 @@ public abstract class AbstractChannel implements PluginMessageListener, Listener
 
     public abstract String getChannel();
     public void load() {}
-    public void onRegisterConnection(@Nonnull Player player) {
-        players.add(player.getUniqueId());
-        if (!messages.isEmpty()) {
+    public void scheduleMessages(@Nonnull Player player) {
+        onRegisterChannel.put(player.getUniqueId(), () -> {
             for (byte[] message : messages) {
                 sendMessage(player, message);
             }
+        });
+
+        if (players.contains(player.getUniqueId())) {
+            onRegisterChannel.remove(player.getUniqueId()).run();
         }
     }
     public void onMessageReceived(@Nonnull Player player, @Nonnull byte[] message) {}
@@ -71,6 +77,10 @@ public abstract class AbstractChannel implements PluginMessageListener, Listener
         }
 
         players.add(event.getPlayer().getUniqueId());
+        Runnable runnable = onRegisterChannel.remove(event.getPlayer().getUniqueId());
+        if (runnable != null) {
+            runnable.run();
+        }
     }
 
     @Override
